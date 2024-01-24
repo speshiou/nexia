@@ -36,7 +36,7 @@ const CreateImageTextInput: React.FC = () => {
         {inputValue && <button className="p-2" onClick={handleClear}>
           <XMarkIcon className="h-5 w-5 flex-none text-gray-400" />
         </button>}
-        <button type="submit" className="bg-gray-300 rounded-r px-3 py-2">
+        <button type="submit" className="bg-blue-100 rounded-r px-3 py-2 disabled:bg-gray-300" disabled={ taskState == 'processing'}>
           Create
         </button>
       </div>
