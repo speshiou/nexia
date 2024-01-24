@@ -6,7 +6,7 @@ import { useCreateImageTask } from "./create_image_task";
 
 const CreateImageTextInput: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
-  const { createImages, taskState } = useCreateImageTask()
+  const { createImages, taskState, thumbnail, setRefImage } = useCreateImageTask()
 
   const handleClear = () => {
     setInputValue("");
@@ -26,6 +26,7 @@ const CreateImageTextInput: React.FC = () => {
   return (
     <form onSubmit={handleSubmit}>
       <div className="flex items-center border">
+        {thumbnail && <img className="w-12" src={thumbnail as string} alt="Preview" onClick={() => setRefImage(null)} />}
         <input
           type="text"
           value={inputValue}
@@ -36,7 +37,7 @@ const CreateImageTextInput: React.FC = () => {
         {inputValue && <button className="p-2" onClick={handleClear}>
           <XMarkIcon className="h-5 w-5 flex-none text-gray-400" />
         </button>}
-        <button type="submit" className="bg-blue-100 rounded-r px-3 py-2 disabled:bg-gray-300" disabled={ taskState == 'processing'}>
+        <button type="submit" className="bg-blue-100 rounded-r px-3 py-2 disabled:bg-gray-300" disabled={taskState == 'processing'}>
           Create
         </button>
       </div>

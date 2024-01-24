@@ -2,6 +2,8 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
 
+const HOST = "sdwebui.speshiou.com"
+
 // Define the shape of the context value
 interface CreateImageTask {
   progress: number;
@@ -10,7 +12,29 @@ interface CreateImageTask {
   taskState: "pending" | "processing" | "done";
   setTaskState: (state: "pending" | "processing" | "done") => void;
   createImages: (prompt: string) => void;
+  setRefImage: (file: File | null) => void;
+  thumbnail: string | ArrayBuffer | null
 }
+
+interface Txt2ImgRequestData {
+  prompt: string;
+  steps: number;
+  cfg_scale: number;
+  width: number;
+  height: number;
+  batch_size: number;
+  alwayson_scripts?: {
+    controlnet: {
+      args: {
+        input_image: string; // Assuming this is the base64 encoded image
+        module: string;
+        model: string;
+        weight: number;
+      }[];
+    };
+  };
+}
+
 
 // Default value for the context
 const defaultValue: CreateImageTask = {
@@ -20,6 +44,8 @@ const defaultValue: CreateImageTask = {
   taskState: "pending",
   setTaskState: () => { },
   createImages: () => { },
+  setRefImage: function (file: File | null): void { },
+  thumbnail: null
 };
 
 // Create the context
@@ -35,8 +61,15 @@ export function CreateImageTaskProvider({ children }: Readonly<{
   children: React.ReactNode,
 }>) {
   const [progress, setProgress] = useState(0);
-  const [imageResults, setImageResults] = useState<string[]>([]);
+  const [imageResults, setImageResults] = useState<string[]>([
+    // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
+    // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
+    // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
+    // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
+  ]);
   const [taskState, setTaskState] = useState<"pending" | "processing" | "done">("pending");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [thumbnail, setThumbnail] = useState<string | ArrayBuffer | null>(null);
 
   // Simulate progress increase and task state using useEffect for demo purposes
   useEffect(() => {
@@ -59,19 +92,36 @@ export function CreateImageTaskProvider({ children }: Readonly<{
 
   // Function to upload the image
   const createImages = async (prompt: string) => {
-    const HOST = "sdwebui.speshiou.com"
+    const hasRefImage = selectedImage
     // Simulate upload process
     setProgress(0);
     setTaskState("processing");
 
-    const payload = {
+    let payload: Txt2ImgRequestData = {
       "prompt": prompt,
       "steps": 20,
-      "cfg_scale": 7.5,
+      "cfg_scale": 7,
       "width": 512,
-      "height": 768,
+      "height": 512,
       // "batch_count": 2,
-      "batch_size": 2,
+      "batch_size": 4,
+    }
+
+    if (selectedImage) {
+      // trim data url prefix
+      const encodedImage = selectedImage.replace(/^data:.+?,/, "")
+      payload["alwayson_scripts"] = {
+        "controlnet": {
+          "args": [
+            {
+              input_image: encodedImage,
+              module: "tile_resample",
+              model: 'control_v11f1e_sd15_tile [a371b31b]',
+              weight: 0.8,
+            }
+          ]
+        }
+      }
     }
 
     // Add the uploaded image to the results
@@ -85,8 +135,13 @@ export function CreateImageTaskProvider({ children }: Readonly<{
       });
 
       const data = await response.json();
-      console.log(data)
-      setImageResults([...data["images"]]);
+      let images = data["images"]
+      if (hasRefImage) {
+        // SD WebUI would append the preprocess image to the end of the result
+        images = images.slice(0, images.length - 1)
+      }
+      
+      setImageResults([...images]);
     } catch (error) {
 
     } finally {
@@ -95,14 +150,68 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     }
   };
 
+  const setRefImage = (file: File | null) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          const dataUrl = event.target.result as string
+          setSelectedImage(dataUrl)
+          compressImageAndSetThumbnail(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setSelectedImage(null)
+      setThumbnail(null)
+    }
+  }
+
+  const compressImageAndSetThumbnail = (dataURL: string) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        setThumbnail(dataURL);
+        return;
+      }
+
+      const MAX_WIDTH = 200;
+      const MAX_HEIGHT = 200;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7);
+      setThumbnail(compressed);
+    };
+    img.src = dataURL;
+  };
+
   // Create the context value
   const value: CreateImageTask = {
+    thumbnail,
     progress,
     setProgress,
     imageResults,
     taskState,
     setTaskState,
     createImages: createImages,
+    setRefImage: setRefImage
   };
 
   return <CreateImageTaskContext.Provider value={value}>{children}</CreateImageTaskContext.Provider>;
