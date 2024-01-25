@@ -4,6 +4,7 @@ import CreateImageTextInput from "@/components/create_image_text_input";
 import { CreateImageTaskProvider } from "@/components/create_image_task";
 import CreateImageResults from "@/components/create_image_results";
 import CreateImageRefDropArea from "@/components/create_image_ref_drop_area";
+import CreateImageContent from "@/components/create_image_content";
 
 export default async function Home({ params }: Readonly<{
   children: React.ReactNode,
@@ -13,9 +14,12 @@ export default async function Home({ params }: Readonly<{
   return (
     <main className="m-10">
       <CreateImageTaskProvider>
+        <CreateImageRefDropArea>
         <CreateImageTextInput />
-        <CreateImageRefDropArea />
-        <CreateImageResults />
+          <div className="mx-auto max-w-xl flex flex-wrap text-center">
+            <CreateImageContent />
+          </div>
+        </CreateImageRefDropArea>
       </CreateImageTaskProvider>
     </main>
   );

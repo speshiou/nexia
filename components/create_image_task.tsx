@@ -11,6 +11,8 @@ export type ImageRefType = "full" | "face";
 interface CreateImageTask {
   progress: number;
   setProgress: (progress: number) => void;
+  dragging: boolean;
+  setDragging: (dragging: boolean) => void;
   imageResults: string[];
   taskState: TaskState;
   setTaskState: (state: TaskState) => void;
@@ -52,7 +54,9 @@ const defaultValue: CreateImageTask = {
   setRefImage: function (file: File | null): void { },
   thumbnail: null,
   setImageRefType: function (type: ImageRefType): void { },
-  imageRefType: "full"
+  imageRefType: "full",
+  dragging: false,
+  setDragging: function (dragging: boolean): void { }
 };
 
 // Create the context
@@ -68,6 +72,7 @@ export function CreateImageTaskProvider({ children }: Readonly<{
   children: React.ReactNode,
 }>) {
   const [progress, setProgress] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const [imageResults, setImageResults] = useState<string[]>([
     // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
     // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
@@ -81,9 +86,9 @@ export function CreateImageTaskProvider({ children }: Readonly<{
 
   // Simulate progress increase and task state using useEffect for demo purposes
   useEffect(() => {
-    const progressInterval = setInterval(() => {
-      setProgress((prevProgress) => (prevProgress < 100 ? prevProgress + 10 : 100));
-    }, 1000);
+    // const progressInterval = setInterval(() => {
+    //   setProgress((prevProgress) => (prevProgress < 100 ? prevProgress + 10 : 100));
+    // }, 1000);
 
     // Simulate task processing and completion
     // setTimeout(() => {
@@ -94,7 +99,7 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     // }, 2000);
 
     return () => {
-      clearInterval(progressInterval);
+      // clearInterval(progressInterval);
     };
   }, []);
 
@@ -118,7 +123,7 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     let module: string
     let model: string
     let weight: number
-    switch(imageRefType) {
+    switch (imageRefType) {
       case "full":
         module = "tile_resample"
         model = "control_v11f1e_sd15_tile [a371b31b]"
@@ -164,7 +169,7 @@ export function CreateImageTaskProvider({ children }: Readonly<{
         // SD WebUI would append the preprocess image to the end of the result
         images = images.slice(0, images.length - 1)
       }
-      
+
       setImageResults([...images]);
     } catch (error) {
 
@@ -231,6 +236,8 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     thumbnail,
     progress,
     setProgress,
+    dragging,
+    setDragging,
     imageResults,
     taskState,
     setTaskState,
