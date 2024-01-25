@@ -4,13 +4,18 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 
 const HOST = "sdwebui.speshiou.com"
 
+export type TaskState = "pending" | "processing" | "done";
+export type ImageRefType = "full" | "face";
+
 // Define the shape of the context value
 interface CreateImageTask {
   progress: number;
   setProgress: (progress: number) => void;
   imageResults: string[];
-  taskState: "pending" | "processing" | "done";
-  setTaskState: (state: "pending" | "processing" | "done") => void;
+  taskState: TaskState;
+  setTaskState: (state: TaskState) => void;
+  imageRefType: ImageRefType,
+  setImageRefType: (type: ImageRefType) => void;
   createImages: (prompt: string) => void;
   setRefImage: (file: File | null) => void;
   thumbnail: string | ArrayBuffer | null
@@ -45,7 +50,9 @@ const defaultValue: CreateImageTask = {
   setTaskState: () => { },
   createImages: () => { },
   setRefImage: function (file: File | null): void { },
-  thumbnail: null
+  thumbnail: null,
+  setImageRefType: function (type: ImageRefType): void { },
+  imageRefType: "full"
 };
 
 // Create the context
@@ -67,7 +74,8 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
     // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
   ]);
-  const [taskState, setTaskState] = useState<"pending" | "processing" | "done">("pending");
+  const [taskState, setTaskState] = useState<TaskState>("pending");
+  const [imageRefType, setImageRefType] = useState<ImageRefType>("full");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [thumbnail, setThumbnail] = useState<string | ArrayBuffer | null>(null);
 
@@ -104,7 +112,23 @@ export function CreateImageTaskProvider({ children }: Readonly<{
       "width": 512,
       "height": 512,
       // "batch_count": 2,
-      "batch_size": 4,
+      "batch_size": 2,
+    }
+
+    let module: string
+    let model: string
+    let weight: number
+    switch(imageRefType) {
+      case "full":
+        module = "tile_resample"
+        model = "control_v11f1e_sd15_tile [a371b31b]"
+        weight = 0.6
+        break
+      case "face":
+        module = "ip-adapter_clip_sd15"
+        model = "ip-adapter-full-face_sd15 [852b9843]"
+        weight = 0.6
+        break
     }
 
     if (selectedImage) {
@@ -115,9 +139,9 @@ export function CreateImageTaskProvider({ children }: Readonly<{
           "args": [
             {
               input_image: encodedImage,
-              module: "tile_resample",
-              model: 'control_v11f1e_sd15_tile [a371b31b]',
-              weight: 0.8,
+              module: module,
+              model: model,
+              weight: weight,
             }
           ]
         }
@@ -210,8 +234,10 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     imageResults,
     taskState,
     setTaskState,
+    setImageRefType,
     createImages: createImages,
-    setRefImage: setRefImage
+    setRefImage: setRefImage,
+    imageRefType
   };
 
   return <CreateImageTaskContext.Provider value={value}>{children}</CreateImageTaskContext.Provider>;

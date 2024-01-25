@@ -2,11 +2,28 @@
 
 import React, { useState } from "react";
 import { XMarkIcon } from '@heroicons/react/20/solid'
-import { useCreateImageTask } from "./create_image_task";
+import { ImageRefType, useCreateImageTask } from "./create_image_task";
+
+interface ImageRefOption {
+  label: string
+  value: ImageRefType
+}
 
 const CreateImageTextInput: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
-  const { createImages, taskState, thumbnail, setRefImage } = useCreateImageTask()
+  const [dragOver, setDragOver] = useState(false);
+  const { createImages, taskState, thumbnail, setRefImage, imageRefType, setImageRefType } = useCreateImageTask()
+
+  const imageRefOptions: ImageRefOption[] = [
+    {
+      label: "Reference full image",
+      value: "full",
+    },
+    {
+      label: "Face only",
+      value: "face",
+    },
+  ]
 
   const handleClear = () => {
     setInputValue("");
@@ -40,6 +57,25 @@ const CreateImageTextInput: React.FC = () => {
         <button type="submit" className="bg-blue-100 rounded-r px-3 py-2 disabled:bg-gray-300" disabled={taskState == 'processing'}>
           Create
         </button>
+      </div>
+      <div className="my-6 flex space-x-6">
+        {...imageRefOptions.map((option) => {
+          const id = `image-ref-type-${option.value}`
+          return <div key={id} className="flex items-center gap-x-3">
+          <input
+            id={id}
+            name="push-notifications"
+            type="radio"
+            value={option.value}
+            className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+            checked={option.value == imageRefType}
+            onChange={() => setImageRefType(option.value)}
+          />
+          <label htmlFor={id} className="block text-sm font-medium leading-6 text-gray-900">
+            {option.label}
+          </label>
+        </div>
+        })}
       </div>
     </form>
   );
