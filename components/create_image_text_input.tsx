@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from "react";
-import { XMarkIcon } from '@heroicons/react/20/solid'
+import { XMarkIcon, PhotoIcon } from '@heroicons/react/20/solid'
 import { ImageRefType, useCreateImageTask } from "./create_image_task";
 
 interface ImageRefOption {
@@ -11,12 +11,11 @@ interface ImageRefOption {
 
 const CreateImageTextInput: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
-  const [dragOver, setDragOver] = useState(false);
   const { createImages, taskState, thumbnail, setRefImage, imageRefType, setImageRefType } = useCreateImageTask()
 
   const imageRefOptions: ImageRefOption[] = [
     {
-      label: "Reference full image",
+      label: "Reference entire image",
       value: "full",
     },
     {
@@ -49,16 +48,19 @@ const CreateImageTextInput: React.FC = () => {
           value={inputValue}
           onChange={handleChange}
           className="border-none px-3 py-2 flex-1 outline-none"
-          placeholder="Enter text"
+          placeholder={thumbnail ? "Reimagine ..." : "Describe the image ..."}
         />
         {inputValue && <button className="p-2" onClick={handleClear}>
           <XMarkIcon className="h-5 w-5 flex-none text-gray-400" />
         </button>}
-        <button type="submit" className="bg-blue-100 rounded-r px-3 py-2 disabled:bg-gray-300" disabled={taskState == 'processing'}>
+        <button type="submit" className="bg-indigo-600 text-white rounded px-3 py-2 disabled:bg-gray-300" disabled={taskState == 'processing'}>
           Create
         </button>
       </div>
-      <div className="my-6 flex space-x-6">
+      {!thumbnail ? <p className="text-xs text-gray-500 p-2 flex items-center gap-x-2">
+      <PhotoIcon className="h-5 w-5 text-gray-400" /> Drop an image for reference
+        </p>:
+      <div className="mt-6 flex space-x-6">
         {...imageRefOptions.map((option) => {
           const id = `image-ref-type-${option.value}`
           return <div key={id} className="flex items-center gap-x-3">
@@ -76,7 +78,7 @@ const CreateImageTextInput: React.FC = () => {
           </label>
         </div>
         })}
-      </div>
+      </div>}
     </form>
   );
 };

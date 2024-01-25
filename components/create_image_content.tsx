@@ -7,7 +7,7 @@ import CreateImageProcessing from "./create_image_processing";
 import CreateImageLanding from "./create_image_landing";
 
 const CreateImageContent: React.FC = () => {
-    const { taskState, setDragging } = useCreateImageTask()
+    const { taskState } = useCreateImageTask()
 
     const mainContent = (taskState: TaskState) => {
       switch (taskState) {
@@ -20,9 +20,9 @@ const CreateImageContent: React.FC = () => {
       }
     }
   return (
-    <div onDragOver={()=>setDragging(true)}>
+    <>
     { mainContent(taskState)}
-    </div>
+    </>
   );
 };
 

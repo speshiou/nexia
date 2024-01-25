@@ -16,7 +16,7 @@ export default async function Home({ params }: Readonly<{
       <CreateImageTaskProvider>
         <CreateImageRefDropArea>
         <CreateImageTextInput />
-          <div className="mx-auto max-w-xl flex flex-wrap text-center">
+          <div className="mx-auto my-10 max-w-xl flex flex-wrap text-center">
             <CreateImageContent />
           </div>
         </CreateImageRefDropArea>
