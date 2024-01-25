@@ -10,7 +10,7 @@ interface ImageRefOption {
 }
 
 const CreateImageTextInput: React.FC = () => {
-  const [inputValue, setInputValue] = useState("");
+  const [prompt, setPrompt] = useState("");
   const { createImages, taskState, thumbnail, setRefImage, imageRefType, setImageRefType } = useCreateImageTask()
 
   const imageRefOptions: ImageRefOption[] = [
@@ -25,18 +25,28 @@ const CreateImageTextInput: React.FC = () => {
   ]
 
   const handleClear = () => {
-    setInputValue("");
+    setPrompt("");
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
+    setPrompt(event.target.value);
   };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      // Call your function to process the input here
+      console.log('Enter key pressed');
+      createImages(prompt)
+    }
+  };
+
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // handle submitting the form
-    console.log("Submitted with value:", inputValue);
-    createImages(inputValue)
+    console.log("Submitted with value:", prompt);
+    createImages(prompt)
   };
 
   return (
@@ -45,12 +55,13 @@ const CreateImageTextInput: React.FC = () => {
         {thumbnail && <img className="w-12" src={thumbnail as string} alt="Preview" onClick={() => setRefImage(null)} />}
         <input
           type="text"
-          value={inputValue}
+          value={prompt}
           onChange={handleChange}
+          onKeyDown={handleKeyDown} 
           className="border-none px-3 py-2 flex-1 outline-none"
           placeholder={thumbnail ? "Reimagine ..." : "Describe the image ..."}
         />
-        {inputValue && <button className="p-2" onClick={handleClear}>
+        {prompt && <button className="p-2" onClick={handleClear}>
           <XMarkIcon className="h-5 w-5 flex-none text-gray-400" />
         </button>}
         <button type="submit" className="bg-indigo-600 text-white rounded px-3 py-2 disabled:bg-gray-300" disabled={taskState == 'processing'}>
