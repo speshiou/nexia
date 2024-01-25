@@ -136,9 +136,9 @@ export function CreateImageTaskProvider({ children }: Readonly<{
         break
     }
 
-    if (selectedImage) {
+    if (thumbnail) {
       // trim data url prefix
-      const encodedImage = selectedImage.replace(/^data:.+?,/, "")
+      const encodedImage = (thumbnail as string).replace(/^data:.+?,/, "")
       payload["alwayson_scripts"] = {
         "controlnet": {
           "args": [
@@ -206,8 +206,8 @@ export function CreateImageTaskProvider({ children }: Readonly<{
         return;
       }
 
-      const MAX_WIDTH = 200;
-      const MAX_HEIGHT = 200;
+      const MAX_WIDTH = 512;
+      const MAX_HEIGHT = 512;
       let width = img.width;
       let height = img.height;
 
