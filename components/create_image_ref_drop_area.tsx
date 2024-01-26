@@ -21,14 +21,6 @@ const CreateImageRefDropArea: React.FC<React.PropsWithChildren> = ({ children })
     console.log(`event=${event.type}`)
   }
 
-  const handleImageInput = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const file = event.target.files[0];
-      setRefImage(file);
-    }
-  };
-
-
   return (
     <div
       className={clsx({
