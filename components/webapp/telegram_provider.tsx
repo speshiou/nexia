@@ -1,6 +1,6 @@
 'use client'
 
-import { TelegramWebApp } from '@/app/telegram';
+import { TelegramWebApp } from '@/types/telegram';
 import Script from 'next/script';
 import React, { createContext, FC, useContext, useEffect, useState } from 'react';
 
@@ -10,7 +10,9 @@ type WebApp = {
 };
 
 const dummyWebApp: TelegramWebApp = {
-    initData: ''
+    initData: '',
+    ready: function (): void {},
+    expand: function (): void {}
 }
 
 const defaultValue: WebApp = {
@@ -28,9 +30,15 @@ const TelegramProvider: FC<React.PropsWithChildren> = ({ children }) => {
         webApp: global?.window && global.window.Telegram && window.Telegram.WebApp
     };
 
+    const handleOnLoad = () => {
+        setInitialized(true)
+        window.Telegram.WebApp.ready()
+        window.Telegram.WebApp.expand()
+    }
+
     return (
         <TelegramContext.Provider value={contextValue}>
-            <Script src="https://telegram.org/js/telegram-web-app.js" onLoad={() => setInitialized(true)}></Script>
+            <Script src="https://telegram.org/js/telegram-web-app.js" onLoad={handleOnLoad}></Script>
             {children}
         </TelegramContext.Provider>
     );

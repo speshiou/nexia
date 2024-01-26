@@ -3,6 +3,7 @@
 import { ObjectId } from "mongodb";
 import clientPromise from "./mongodb";
 import { TelegramUser } from "@/types/telegram";
+import { Account } from "@/types/types";
 
 const DAILY_GEMS = 10
 
@@ -17,7 +18,7 @@ const myDatabase = async () => {
 
 export const getTelegramUser = async (user: TelegramUser) => {
     const db = await myDatabase()
-    const usersCollection = db.collection(Collection.TelegramUser)
+    const usersCollection = db.collection<Account>(Collection.TelegramUser)
     const today = new Date()
     return await usersCollection.findOne(
         { _id: user.id },
@@ -26,7 +27,7 @@ export const getTelegramUser = async (user: TelegramUser) => {
 
 export const upsertTelegramUser = async (user: TelegramUser) => {
     const db = await myDatabase()
-    const usersCollection = db.collection(Collection.TelegramUser)
+    const usersCollection = db.collection<Account>(Collection.TelegramUser)
     const today = new Date()
 
     // Update the user's document and check if it has been newly inserted
@@ -47,16 +48,19 @@ export const upsertTelegramUser = async (user: TelegramUser) => {
             returnDocument: "after",
         }
     );
-    return result.value
+    return result
 }
 
 export const issueDailyGems = async (user: TelegramUser) => {
     const db = await myDatabase()
-    const usersCollection = db.collection(Collection.TelegramUser)
+    const usersCollection = db.collection<Account>(Collection.TelegramUser)
     const today = new Date()
 
     const result = await usersCollection.findOneAndUpdate(
-        { _id: user.id, last_gem_issued_date: { $ne: today.toDateString() } },
+        { 
+            _id: user.id, 
+            last_gem_issued_date: { $ne: today.toDateString() } 
+        },
         {
             $set: {
                 last_gem_issued_date: today.toDateString()
@@ -77,6 +81,5 @@ export const issueDailyGems = async (user: TelegramUser) => {
         // Gems have already been issued today
         console.log("Gems already issued today")
     }
-
-    return result?.value
+    return result
 }

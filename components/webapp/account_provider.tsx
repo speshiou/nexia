@@ -3,20 +3,18 @@
 import React, { createContext, FC, useContext, useEffect, useState } from 'react';
 import { useTelegram } from './telegram_provider';
 import { authTelegram } from '@/lib/actions';
-
-type Account = {
-    gems: number | null;
-};
+import { Account } from '@/types/types';
 
 type AccountContextType = {
-    account: Account;
+    gems: number;
 };
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 const AccountProvider: FC<React.PropsWithChildren> = ({ children }) => {
     const [account, setAccount] = useState<Account>({
-        gems: null,
+        _id: 0,
+        gems: 0,
     });
 
     const { initialized, webApp } = useTelegram()
@@ -25,15 +23,8 @@ const AccountProvider: FC<React.PropsWithChildren> = ({ children }) => {
         const fetchUserData = async () => {
             try {
                 if (!initialized) return
-                const response = await authTelegram(webApp.initData);
-                console.log(response)
-                console.log(webApp.initData)
-                // if (response.ok) {
-                //     //   const userData: User = await response.json();
-                //     //   setUser(userData);
-                // } else {
-                //     throw new Error('Failed to fetch user data');
-                // }
+                const user = await authTelegram(webApp.initData) as Account
+                setAccount(user)
             } catch (error) {
                 // TODO: error handling
             }
@@ -42,7 +33,7 @@ const AccountProvider: FC<React.PropsWithChildren> = ({ children }) => {
         fetchUserData();
     }, [initialized]);
 
-    const contextValue: AccountContextType = { account };
+    const contextValue: AccountContextType = { gems: account.gems };
 
     return <AccountContext.Provider value={contextValue}>{children}</AccountContext.Provider>;
 };

@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, PhoneIcon, PlayCircleIcon } from '@heroicons/react/20/solid'
 import { PageProps } from '@/types/types'
+import { useAccount } from './account_provider'
 
 const products = [
   { name: 'Analytics', description: 'Get a better understanding of your traffic', href: '#', icon: ChartPieIcon },
@@ -36,14 +37,14 @@ interface UserEvent extends Event {
 
 export default function Header() {
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const {gems} = useAccount()
 
   return (
     <header>
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
         <img className="h-8 w-auto" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600" alt="" />
         <a href="getgems" className="flex gap-4 text-lg font-semibold leading-6 text-gray-900 dark:text-white">
-          💎 <span aria-hidden="true">100</span>
+          💎 <span aria-hidden="true">{gems}</span>
         </a>
       </nav>
     </header>

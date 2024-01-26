@@ -1,18 +1,14 @@
 'use server'
 
 import { _authTelegram } from "./auth"
-import { getTelegramUser, issueDailyGems, upsertTelegramUser } from "./data"
+import { issueDailyGems, upsertTelegramUser } from "./data"
 
 export async function authTelegram(initData: string) {
     const user = _authTelegram(initData)
     console.log(user)
-    let userDoc = await upsertTelegramUser(user)
-    console.log(userDoc)
-    userDoc = await issueDailyGems(user)
-    console.log(userDoc)
-    userDoc = await getTelegramUser(user)
-    console.log(userDoc)
-    return userDoc
+    const userDoc = await upsertTelegramUser(user)
+    const updatedUserDoc = await issueDailyGems(user)
+    return updatedUserDoc || userDoc
 }
 
 export async function txt2img(prompt: string, refImage?: string, imageRefType?: "full" | "face", video: boolean = false, initData?: string) {
