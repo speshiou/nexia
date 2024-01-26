@@ -2,6 +2,8 @@
 
 const querystring = require('node:querystring');
 import crypto from "crypto"
+import { issueDailyGems, upsertTelegramUser } from "./data";
+import { TelegramUser } from "@/types/telegram";
 
 export const _authTelegram = (initData: string) => {
     const authData = querystring.parse(initData)
@@ -21,5 +23,7 @@ export const _authTelegram = (initData: string) => {
     if ((Date.now() / 1000 - authData.auth_date) > 86400) {
       throw new Error('Data is outdated');
     }
-    return authData;
+
+    const user: TelegramUser = JSON.parse(authData.user)
+    return user
 }
