@@ -6,6 +6,7 @@ const HOST = "sdwebui.speshiou.com"
 
 export type TaskState = "pending" | "processing" | "done";
 export type ImageRefType = "full" | "face";
+export type OutputType = "image" | "video";
 
 // Define the shape of the context value
 interface CreateImageTask {
@@ -16,11 +17,50 @@ interface CreateImageTask {
   imageResults: string[];
   taskState: TaskState;
   setTaskState: (state: TaskState) => void;
+  outputType: OutputType;
+  setOutputType: (state: OutputType) => void;
   imageRefType: ImageRefType,
   setImageRefType: (type: ImageRefType) => void;
   createImages: (prompt: string) => void;
   setRefImage: (file: File | null) => void;
   thumbnail: string | ArrayBuffer | null
+}
+
+interface AnimateDiffInputs {
+  model: string;
+  enable: boolean;
+  video_length: number;
+  fps: number;
+  loop_number: number;
+  closed_loop: string;
+  batch_size: number;
+  stride: number;
+  overlap: number;
+  format: string[];
+  interp: string;
+  interp_x: number;
+  video_source: string | null;
+  video_path: string | null;
+  latent_power: number;
+  latent_scale: number;
+  last_frame: string | null;
+  latent_power_last: number;
+  latent_scale_last: number;
+  request_id: string;
+}
+
+interface ScriptsInputs {
+  controlnet?: {
+    args: {
+      input_image: string; // Assuming this is the base64 encoded image
+      module: string;
+      model: string;
+      weight: number;
+    }[];
+  };
+  AnimateDiff?: {
+    args: AnimateDiffInputs[]
+  }
 }
 
 interface Txt2ImgRequestData {
@@ -30,18 +70,8 @@ interface Txt2ImgRequestData {
   width: number;
   height: number;
   batch_size: number;
-  alwayson_scripts?: {
-    controlnet: {
-      args: {
-        input_image: string; // Assuming this is the base64 encoded image
-        module: string;
-        model: string;
-        weight: number;
-      }[];
-    };
-  };
+  alwayson_scripts?: ScriptsInputs;
 }
-
 
 // Default value for the context
 const defaultValue: CreateImageTask = {
@@ -56,7 +86,9 @@ const defaultValue: CreateImageTask = {
   setImageRefType: function (type: ImageRefType): void { },
   imageRefType: "full",
   dragging: false,
-  setDragging: function (dragging: boolean): void { }
+  setDragging: function (dragging: boolean): void { },
+  outputType: "image",
+  setOutputType: function (state: OutputType): void { }
 };
 
 // Create the context
@@ -79,6 +111,7 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
     // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
   ]);
+  const [outputType, setOutputType] = useState<OutputType>("image");
   const [taskState, setTaskState] = useState<TaskState>("pending");
   const [imageRefType, setImageRefType] = useState<ImageRefType>("full");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -117,7 +150,7 @@ export function CreateImageTaskProvider({ children }: Readonly<{
       "width": 512,
       "height": 512,
       // "batch_count": 2,
-      "batch_size": 2,
+      "batch_size": 1,
     }
 
     let module: string
@@ -136,22 +169,53 @@ export function CreateImageTaskProvider({ children }: Readonly<{
         break
     }
 
-    if (thumbnail) {
+    const scripts: ScriptsInputs = {}
+
+    if (thumbnail && outputType == "image") {
       // trim data url prefix
       const encodedImage = (thumbnail as string).replace(/^data:.+?,/, "")
-      payload["alwayson_scripts"] = {
-        "controlnet": {
-          "args": [
-            {
-              input_image: encodedImage,
-              module: module,
-              model: model,
-              weight: weight,
-            }
-          ]
-        }
+      scripts["controlnet"] = {
+        "args": [
+          {
+            input_image: encodedImage,
+            module: module,
+            model: model,
+            weight: weight,
+          }
+        ]
       }
     }
+
+    if (outputType == "video") {
+      scripts["AnimateDiff"] = {
+        args: [
+          {
+            'model': 'mm_sd15_v3.safetensors',   // Motion module
+            'format': ['GIF'],      // Save format, 'GIF' | 'MP4' | 'PNG' | 'WEBP' | 'WEBM' | 'TXT' | 'Frame'
+            'enable': true,         // Enable AnimateDiff
+            'video_length': 16,     // Number of frames
+            'fps': 8,               // FPS
+            'loop_number': 0,       // Display loop number
+            'closed_loop': 'R+P',   // Closed loop, 'N' | 'R-P' | 'R+P' | 'A'
+            'batch_size': 16,       // Context batch size
+            'stride': 1,            // Stride 
+            'overlap': -1,          // Overlap
+            'interp': 'Off',        // Frame interpolation, 'Off' | 'FILM'
+            'interp_x': 10,          // Interp X
+            'video_source': null,  // Video source
+            'video_path': null,       // Video path
+            'latent_power': 1,      // Latent power
+            'latent_scale': 32,     // Latent scale
+            'last_frame': null,     // Optional last frame
+            'latent_power_last': 1, // Optional latent power for last frame
+            'latent_scale_last': 32,// Optional latent scale for last frame
+            'request_id': ''        // Optional request id. If provided, outputs will have request id
+          }
+        ]
+      }
+    }
+
+    payload["alwayson_scripts"] = scripts
 
     // Add the uploaded image to the results
     try {
@@ -241,6 +305,8 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     imageResults,
     taskState,
     setTaskState,
+    outputType,
+    setOutputType,
     setImageRefType,
     createImages: createImages,
     setRefImage: setRefImage,
