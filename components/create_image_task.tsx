@@ -1,8 +1,7 @@
 'use client'
 
+import { txt2img } from "@/lib/actions";
 import React, { createContext, useState, useContext, useEffect } from "react";
-
-const HOST = "sdwebui.speshiou.com"
 
 export type TaskState = "pending" | "processing" | "done";
 export type ImageRefType = "full" | "face";
@@ -24,53 +23,6 @@ interface CreateImageTask {
   createImages: (prompt: string) => void;
   setRefImage: (file: File | null) => void;
   thumbnail: string | ArrayBuffer | null
-}
-
-interface AnimateDiffInputs {
-  model: string;
-  enable: boolean;
-  video_length: number;
-  fps: number;
-  loop_number: number;
-  closed_loop: string;
-  batch_size: number;
-  stride: number;
-  overlap: number;
-  format: string[];
-  interp: string;
-  interp_x: number;
-  video_source: string | null;
-  video_path: string | null;
-  latent_power: number;
-  latent_scale: number;
-  last_frame: string | null;
-  latent_power_last: number;
-  latent_scale_last: number;
-  request_id: string;
-}
-
-interface ScriptsInputs {
-  controlnet?: {
-    args: {
-      input_image: string; // Assuming this is the base64 encoded image
-      module: string;
-      model: string;
-      weight: number;
-    }[];
-  };
-  AnimateDiff?: {
-    args: AnimateDiffInputs[]
-  }
-}
-
-interface Txt2ImgRequestData {
-  prompt: string;
-  steps: number;
-  cfg_scale: number;
-  width: number;
-  height: number;
-  batch_size: number;
-  alwayson_scripts?: ScriptsInputs;
 }
 
 // Default value for the context
@@ -143,100 +95,17 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     setProgress(0);
     setTaskState("processing");
 
-    let payload: Txt2ImgRequestData = {
-      "prompt": prompt,
-      "steps": 20,
-      "cfg_scale": 7,
-      "width": 512,
-      "height": 512,
-      // "batch_count": 2,
-      "batch_size": 1,
-    }
-
-    let module: string
-    let model: string
-    let weight: number
-    switch (imageRefType) {
-      case "full":
-        module = "tile_resample"
-        model = "control_v11f1e_sd15_tile [a371b31b]"
-        weight = 0.6
-        break
-      case "face":
-        module = "ip-adapter_clip_sd15"
-        model = "ip-adapter-full-face_sd15 [852b9843]"
-        weight = 0.6
-        break
-    }
-
-    const scripts: ScriptsInputs = {}
-
-    if (thumbnail && outputType == "image") {
-      // trim data url prefix
-      const encodedImage = (thumbnail as string).replace(/^data:.+?,/, "")
-      scripts["controlnet"] = {
-        "args": [
-          {
-            input_image: encodedImage,
-            module: module,
-            model: model,
-            weight: weight,
-          }
-        ]
-      }
-    }
-
-    if (outputType == "video") {
-      scripts["AnimateDiff"] = {
-        args: [
-          {
-            'model': 'mm_sd15_v3.safetensors',   // Motion module
-            'format': ['GIF'],      // Save format, 'GIF' | 'MP4' | 'PNG' | 'WEBP' | 'WEBM' | 'TXT' | 'Frame'
-            'enable': true,         // Enable AnimateDiff
-            'video_length': 16,     // Number of frames
-            'fps': 8,               // FPS
-            'loop_number': 0,       // Display loop number
-            'closed_loop': 'R+P',   // Closed loop, 'N' | 'R-P' | 'R+P' | 'A'
-            'batch_size': 16,       // Context batch size
-            'stride': 1,            // Stride 
-            'overlap': -1,          // Overlap
-            'interp': 'Off',        // Frame interpolation, 'Off' | 'FILM'
-            'interp_x': 10,          // Interp X
-            'video_source': null,  // Video source
-            'video_path': null,       // Video path
-            'latent_power': 1,      // Latent power
-            'latent_scale': 32,     // Latent scale
-            'last_frame': null,     // Optional last frame
-            'latent_power_last': 1, // Optional latent power for last frame
-            'latent_scale_last': 32,// Optional latent scale for last frame
-            'request_id': ''        // Optional request id. If provided, outputs will have request id
-          }
-        ]
-      }
-    }
-
-    payload["alwayson_scripts"] = scripts
-
     // Add the uploaded image to the results
     try {
-      const response = await fetch(`https://${HOST}/sdapi/v1/txt2img`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-      let images = data["images"]
-      if (hasRefImage) {
-        // SD WebUI would append the preprocess image to the end of the result
-        images = images.slice(0, images.length - 1)
-      }
+      
+      // trim data url prefix
+      const encodedImage = (thumbnail as string)?.replace(/^data:.+?,/, "")
+      const images = await txt2img(prompt, encodedImage, imageRefType, outputType == "video")
 
       setImageResults([...images]);
     } catch (error) {
-
+      // TODO: handle errors
+      console.log(error)
     } finally {
       setProgress(100);
       setTaskState("done");
