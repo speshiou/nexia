@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { XMarkIcon, PhotoIcon } from '@heroicons/react/20/solid'
 import { ImageRefType, OutputType, useCreateImageTask } from "./create_image_task";
 import clsx from "clsx";
@@ -18,7 +18,7 @@ interface OutputTypeOption {
 const CreateImageTextInput: React.FC = () => {
   const [prompt, setPrompt] = useState("");
   const { createImages,
-    taskState, thumbnail, setRefImage, imageRefType, 
+    taskState, thumbnail, setRefImage, imageRefType,
     setImageRefType, outputType, setOutputType } = useCreateImageTask()
 
   const imageRefOptions: ImageRefOption[] = [
@@ -60,6 +60,12 @@ const CreateImageTextInput: React.FC = () => {
     }
   };
 
+  const handleImageInput = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const file = event.target.files[0];
+      setRefImage(file);
+    }
+  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -74,7 +80,7 @@ const CreateImageTextInput: React.FC = () => {
         {...outputTypeOptions.map((option) => {
           return <button key={option.value} type="button" className={clsx("font-semibold", {
             "text-indigo-600": option.value == outputType
-          })} onClick={()=>setOutputType(option.value)}>{option.label}</button>
+          })} onClick={() => setOutputType(option.value)}>{option.label}</button>
         })}
       </div>
       <div className="flex items-center border">
@@ -84,7 +90,7 @@ const CreateImageTextInput: React.FC = () => {
           value={prompt}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          className="border-none px-3 py-2 flex-1 outline-none"
+          className="border-none px-4 py-3 flex-1 outline-none"
           placeholder={thumbnail ? "Reimagine ..." : "Describe the image ..."}
         />
         {prompt && <button className="p-2" onClick={handleClear}>
@@ -95,7 +101,17 @@ const CreateImageTextInput: React.FC = () => {
         </button>
       </div>
       {!thumbnail ? <p className="text-xs text-gray-500 p-2 flex items-center gap-x-2">
-        <PhotoIcon className="h-5 w-5 text-gray-400" /> Drop an image for reference
+        <PhotoIcon className="h-5 w-5 text-gray-400" />
+        <label htmlFor="imageInput" className="relative cursor-pointer">
+          <span className="py-2 text-blue-500 hover:text-blue-700">Add image reference</span>
+          <input
+            id="imageInput"
+            type="file"
+            className="hidden"
+            accept="image/*"
+            onChange={handleImageInput}
+          />
+        </label>
       </p> :
         <div className="mt-6 flex space-x-6">
           {...imageRefOptions.map((option) => {
