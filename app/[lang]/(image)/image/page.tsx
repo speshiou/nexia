@@ -1,5 +1,5 @@
 import { getLocalizedText } from "@/lib/i18n";
-import { PageProps } from "../../../types";
+import { PageProps } from "../../../../types/types";
 import ImageCreator from "@/components/image_creator";
 
 export default async function Home({ params }: Readonly<{
