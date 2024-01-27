@@ -1,6 +1,6 @@
 import CreateImageTextInput from "@/components/create-image-input";
 import { CreateImageTaskProvider } from "@/components/create-image-task";
-import CreateImageRefDropArea from "@/components/create_image_ref_drop_area";
+import CreateImageRefDropArea from "@/components/create-image-drop-area";
 import CreateImageContent from "@/components/create-image-content";
 
 export default async function ImageCreator() {

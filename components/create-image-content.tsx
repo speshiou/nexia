@@ -2,7 +2,7 @@
 
 import React from "react";
 import { TaskState, useCreateImageTask } from "./create-image-task";
-import CreateImageResults from "./create_image_results";
+import CreateImageResults from "./create-image-results";
 import CreateImageProcessing from "./create-image-processing";
 import CreateImageLanding from "./create-image-landing";
 
