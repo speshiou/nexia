@@ -10,7 +10,6 @@
     "i18n": "i18next-scanner"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^3.5.0",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.1",
     "clsx": "^2.1.0",
