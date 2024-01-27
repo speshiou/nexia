@@ -1,7 +1,7 @@
 'use client'
 
 import ImageCreator from "@/components/image_creator";
-import { AccountProvider } from "@/components/webapp/account-provider";
+import { AccountProvider } from "@/components/account-provider";
 import Header from "@/components/webapp/header";
 import { TelegramProvider } from "@/components/webapp/telegram-provider";
 

@@ -16,12 +16,12 @@ const myDatabase = async () => {
     return client.db("image_creator")
 }
 
-export const getTelegramUser = async (user: TelegramUser) => {
+export const getTelegramUser = async (userId: number) => {
     const db = await myDatabase()
     const usersCollection = db.collection<Account>(Collection.TelegramUser)
     const today = new Date()
     return await usersCollection.findOne(
-        { _id: user.id },
+        { _id: userId },
     )
 }
 
@@ -51,14 +51,14 @@ export const upsertTelegramUser = async (user: TelegramUser) => {
     return result
 }
 
-export const issueDailyGems = async (user: TelegramUser) => {
+export const issueDailyGems = async (userId: number) => {
     const db = await myDatabase()
     const usersCollection = db.collection<Account>(Collection.TelegramUser)
     const today = new Date()
 
     const result = await usersCollection.findOneAndUpdate(
         { 
-            _id: user.id, 
+            _id: userId, 
             last_gem_issued_date: { $ne: today.toDateString() } 
         },
         {

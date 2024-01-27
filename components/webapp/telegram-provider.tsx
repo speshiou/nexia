@@ -1,6 +1,7 @@
 'use client'
 
 import { TelegramWebApp } from '@/types/telegram';
+import { signIn } from 'next-auth/react';
 import Script from 'next/script';
 import React, { createContext, FC, useContext, useEffect, useState } from 'react';
 
@@ -11,8 +12,8 @@ type WebApp = {
 
 const dummyWebApp: TelegramWebApp = {
     initData: '',
-    ready: function (): void {},
-    expand: function (): void {}
+    ready: function (): void { },
+    expand: function (): void { }
 }
 
 const defaultValue: WebApp = {
@@ -30,10 +31,19 @@ const TelegramProvider: FC<React.PropsWithChildren> = ({ children }) => {
         webApp: global?.window && global.window.Telegram && window.Telegram.WebApp
     };
 
-    const handleOnLoad = () => {
-        setInitialized(true)
+    const handleOnLoad = async () => {
+        if (initialized) {
+            return
+        }
         window.Telegram.WebApp.ready()
         window.Telegram.WebApp.expand()
+
+        await signIn(
+            "telegram-login",
+            { callbackUrl: '/webapp' },
+            window.Telegram.WebApp.initData,
+        )
+        setInitialized(true)
     }
 
     return (

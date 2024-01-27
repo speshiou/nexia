@@ -1,7 +1,8 @@
+import { upsertTelegramUser } from "@/lib/data";
+import { verifyAuthData } from "@/lib/telegram/auth";
+import { TelegramUser } from "@/types/telegram";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
-import { objectToAuthDataMap, AuthDataValidator } from "@telegram-auth/server";
 
 declare module "next-auth" {
     interface Session {
@@ -27,33 +28,23 @@ export const authOptions: NextAuthOptions = {
             credentials: {},
             async authorize(credentials, req) {
                 // Add logic here to look up the user from the credentials supplied
-                const validator = new AuthDataValidator({
-                    botToken: `${process.env.BOT_TOKEN}`,
-                });
-
-                const data = objectToAuthDataMap(req.query || {});
-                const user = await validator.validate(data);
-
-                if (user.id && user.first_name) {
-                    const returned = {
-                        id: user.id.toString(),
-                        email: user.id.toString(),
-                        name: [user.first_name, user.last_name || ""].join(" "),
-                        image: user.photo_url,
-                    };
-
-                    try {
-                        await createUserOrUpdate(user);
-                    } catch {
-                        console.log(
-                            "Something went wrong while creating the user."
-                        );
-                    }
-
-                    return returned;
+                let telegramUser: TelegramUser | null = null
+                const authData = req.query
+                console.log(authData)
+                if (authData) {
+                    telegramUser = verifyAuthData(process.env.TELEGRAM_BOT_API_TOKEN || "", authData)
+                    await upsertTelegramUser(telegramUser)
                 }
-                if (user) {
+
+                if (telegramUser) {
                     // Any object returned will be saved in `user` property of the JWT
+                    // The user property should match the format of the OAuth user data
+                    const user = {
+						id: telegramUser.id.toString(),
+						email: telegramUser.id.toString(),
+						name: [telegramUser.first_name, telegramUser.last_name || ""].join(" ").trim(),
+						// image: telegramUser.photo_url,
+					}
                     return user
                 } else {
                     // If you return null then an error will be displayed advising the user to check their details.
@@ -70,10 +61,7 @@ export const authOptions: NextAuthOptions = {
             return session;
         },
     },
-    pages: {
-        signIn: "/auth/signin",
-    },
 };
 
-const handlers = NextAuth(authOptions);
-export const { GET, POST } = handlers
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST }

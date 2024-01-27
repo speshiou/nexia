@@ -1,9 +1,9 @@
 'use client'
 
 import React, { createContext, FC, useContext, useEffect, useState } from 'react';
-import { useTelegram } from './telegram-provider';
-import { authTelegram } from '@/lib/actions';
+import { useTelegram } from './webapp/telegram-provider';
 import { Account } from '@/types/types';
+import { getUser } from '@/lib/actions';
 
 type AccountContextType = {
     gems: number;
@@ -17,14 +17,19 @@ const AccountProvider: FC<React.PropsWithChildren> = ({ children }) => {
         gems: 0,
     });
 
-    const { initialized, webApp } = useTelegram()
+    const { initialized } = useTelegram()
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
                 if (!initialized) return
-                const user = await authTelegram(webApp.initData) as Account
-                setAccount(user)
+
+                const user = await getUser()
+                console.log(user)
+                if (user) {
+                    setAccount(user)
+                }
+                // TODO: error handling
             } catch (error) {
                 // TODO: error handling
             }

@@ -1,14 +1,21 @@
 'use server'
 
+import { getServerSession } from "next-auth"
 import { _authTelegram } from "./auth"
-import { issueDailyGems, upsertTelegramUser } from "./data"
+import { getTelegramUser, issueDailyGems } from "./data"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
-export async function authTelegram(initData: string) {
-    const user = _authTelegram(initData)
-    console.log(user)
-    const userDoc = await upsertTelegramUser(user)
-    const updatedUserDoc = await issueDailyGems(user)
-    return updatedUserDoc || userDoc
+export async function getUser() {
+    const session = await getServerSession(authOptions)
+    if (session && session.user) {
+        const telegramUserId = parseInt(session.user.id)
+        const updatedUser = await issueDailyGems(telegramUserId)
+        if (updatedUser) {
+            return updatedUser
+        }
+        return await getTelegramUser(telegramUserId)
+    }
+    return null
 }
 
 export async function txt2img(prompt: string, refImage?: string, imageRefType?: "full" | "face", video: boolean = false, initData?: string) {
