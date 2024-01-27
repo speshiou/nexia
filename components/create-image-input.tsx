@@ -2,7 +2,7 @@
 
 import React, { ChangeEvent, useState } from "react";
 import { XMarkIcon, PhotoIcon } from '@heroicons/react/20/solid'
-import { ImageRefType, OutputType, useCreateImageTask } from "./create_image_task";
+import { ImageRefType, OutputType, useCreateImageTask } from "./create-image-task";
 import clsx from "clsx";
 
 interface ImageRefOption {

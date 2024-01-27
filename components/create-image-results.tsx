@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from "react";
-import { useCreateImageTask } from "./create_image_task";
+import { useCreateImageTask } from "./create-image-task";
 
 const CreateImageResults: React.FC = () => {
   const { imageResults, taskState } = useCreateImageTask()

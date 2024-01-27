@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, FC, useContext, useEffect, useState } from 'react';
-import { useTelegram } from './telegram_provider';
+import { useTelegram } from './telegram-provider';
 import { authTelegram } from '@/lib/actions';
 import { Account } from '@/types/types';
 

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, ChangeEvent, ReactNode } from 'react';
-import { useCreateImageTask } from './create_image_task';
+import { useCreateImageTask } from './create-image-task';
 import clsx from 'clsx';
 
 const CreateImageRefDropArea: React.FC<React.PropsWithChildren> = ({ children }) => {
