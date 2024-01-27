@@ -25,7 +25,6 @@ const AccountProvider: FC<React.PropsWithChildren> = ({ children }) => {
                 if (!initialized) return
 
                 const user = await getUser()
-                console.log(user)
                 if (user) {
                     setAccount(user)
                 }

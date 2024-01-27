@@ -10,6 +10,10 @@ type WebApp = {
     webApp: TelegramWebApp
 };
 
+interface TelegramProviderProps extends React.PropsWithChildren {
+    auth?: boolean,
+}
+
 const dummyWebApp: TelegramWebApp = {
     initData: '',
     ready: function (): void { },
@@ -23,7 +27,7 @@ const defaultValue: WebApp = {
 
 const TelegramContext = createContext<WebApp>(defaultValue);
 
-const TelegramProvider: FC<React.PropsWithChildren> = ({ children }) => {
+const TelegramProvider: FC<TelegramProviderProps> = ({ children, auth }) => {
     const [initialized, setInitialized] = useState(false)
 
     const contextValue: WebApp = {
@@ -32,7 +36,8 @@ const TelegramProvider: FC<React.PropsWithChildren> = ({ children }) => {
     };
 
     const handleOnLoad = async () => {
-        if (initialized) {
+        if (!auth) {
+            setInitialized(true)
             return
         }
         window.Telegram.WebApp.ready()
@@ -40,10 +45,10 @@ const TelegramProvider: FC<React.PropsWithChildren> = ({ children }) => {
 
         await signIn(
             "telegram-login",
-            { callbackUrl: '/webapp' },
+            { callbackUrl: '/webapp/create' },
             window.Telegram.WebApp.initData,
         )
-        setInitialized(true)
+        // TODO: handle errors
     }
 
     return (
