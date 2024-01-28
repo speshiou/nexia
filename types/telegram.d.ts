@@ -12,7 +12,8 @@ interface MainButton {
   disable: () => void
   showProgress: () => void
   hideProgress: () => void
-  onClick: () => void
+  onClick: (callback: () => void) => void
+  offClick: (callback: () => void) => void
   setParams: (params: MainButtonProps) => void 
 }
 

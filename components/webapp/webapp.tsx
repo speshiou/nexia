@@ -1,26 +1,24 @@
 'use client'
 
-import colors from 'tailwindcss/colors'
-import ImageCreator from "../image_creator"
 import { useTelegram } from "./telegram-provider"
 import Header from './header'
+import { AccountProvider } from '../account-provider'
+import ImageCreator from './image_creator'
+import { CreateImageTaskProvider } from '../create-image-task'
 
 export default function WebApp() {
     const { webApp } = useTelegram()
 
-    webApp?.MainButton?.setParams({
-        text: "Create",
-        color: colors.indigo["600"],
-        text_color: colors.white,
-        is_active: true,
-        is_visible: true,
+    webApp?.MainButton?.onClick(() => {
+        (document.querySelector("[type=submit]") as HTMLButtonElement).click()
     })
-    webApp?.MainButton?.hideProgress()
 
     return (
-        <>
+        <AccountProvider>
             <Header />
-            <ImageCreator />
-        </>
+            <CreateImageTaskProvider>
+                <ImageCreator />
+            </CreateImageTaskProvider>
+        </AccountProvider>
     )
 }

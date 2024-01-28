@@ -17,7 +17,7 @@ interface OutputTypeOption {
 }
 
 const CreateImageTextInput: React.FC = () => {
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState("")
   const { createImages,
     taskState, thumbnail, setRefImage, imageRefType,
     setImageRefType, outputType, setOutputType } = useCreateImageTask()
@@ -48,17 +48,10 @@ const CreateImageTextInput: React.FC = () => {
     setPrompt("");
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPrompt(event.target.value);
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      // Call your function to process the input here
-      console.log('Enter key pressed');
-      createImages(prompt)
-    }
+    event.target.style.height = 'inherit'
+    event.target.style.height = `${event.target.scrollHeight}px`
   };
 
   const handleImageInput = (event: ChangeEvent<HTMLInputElement>) => {
@@ -76,7 +69,7 @@ const CreateImageTextInput: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form id="main-form" onSubmit={handleSubmit}>
       <div className="flex justify-center gap-x-10 my-4">
         {...outputTypeOptions.map((option) => {
           return <button key={option.value} type="button" className={clsx("font-semibold", {
@@ -86,22 +79,20 @@ const CreateImageTextInput: React.FC = () => {
         })}
       </div>
       <div className="flex items-center gap-x-4">
-        {thumbnail && <img className="w-12" src={thumbnail as string} alt="Preview" onClick={() => setRefImage(null)} />}
         <div className="flex flex-1 items-center rounded-md border">
-          <input
-            type="text"
+          {thumbnail && <img className="w-12 ml-4" src={thumbnail as string} alt="Preview" onClick={() => setRefImage(null)} />}
+          <textarea
             value={prompt}
             onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            className="border-none bg-transparent px-4 py-3 flex-1 outline-none dark:text-white"
+            className="border-none bg-transparent px-4 py-3 flex-1 outline-none dark:text-white max-h-32"
             placeholder={thumbnail ? "Reimagine ..." : "Describe the image ..."}
-          />
+          ></textarea>
           {prompt && <button className="p-2" onClick={handleClear}>
             <XMarkIcon className="h-5 w-5 flex-none text-gray-400" />
           </button>}
         </div>
-        <Button type="submit" theme="primary" disabled={taskState == 'processing'}>
-          {taskState != "processing" ? "Create": "Creating"}
+        <Button type="submit" className="create-btn" theme="primary" disabled={taskState == 'processing'}>
+          {taskState != "processing" ? "Create" : "Creating"}
         </Button>
       </div>
       {!thumbnail ? <p className="text-xs text-gray-500 p-2 flex items-center gap-x-2">
@@ -123,7 +114,6 @@ const CreateImageTextInput: React.FC = () => {
             return <div key={id} className="flex items-center gap-x-3">
               <input
                 id={id}
-                name="push-notifications"
                 type="radio"
                 value={option.value}
                 className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"

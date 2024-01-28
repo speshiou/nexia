@@ -18,6 +18,8 @@ const TelegramContext = createContext<WebApp>(defaultValue);
 const TelegramProvider: FC<React.PropsWithChildren> = ({ children }) => {
     const [initialized, setInitialized] = useState(false)
 
+    document.body.classList.add("telegram-app")
+
     const contextValue: WebApp = {
         initialized,
         webApp: global?.window && global.window.Telegram && window.Telegram.WebApp

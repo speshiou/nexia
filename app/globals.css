@@ -20,6 +20,10 @@ body {
 
 }
 
+.telegram-app .create-btn {
+  display: none;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
