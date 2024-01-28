@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth"
 import { _authTelegram } from "./auth"
 import { consumeGems, getTelegramUser, issueDailyGems } from "./data"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { count } from "console"
+import TelegramApi from "./telegram/api"
 
 async function getLoggedInUser() {
     const session = await getServerSession(authOptions)
@@ -48,7 +48,7 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
         "width": 512,
         "height": 512,
         // "batch_count": 2,
-        "batch_size": 1,
+        "batch_size": 2,
     }
 
     const scripts: ScriptsInputs = {}
@@ -128,6 +128,13 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
     }
 
     const updatedUser = await consumeGems(user._id, cost)
+
+    try {
+        const telegramApi = new TelegramApi(process.env.TELEGRAM_BOT_API_TOKEN || "")
+        await telegramApi.sendMediaGroup(user._id, images, prompt)
+    } catch (error) {
+        console.log(error)
+    }
 
     return {
         "user": updatedUser!,
