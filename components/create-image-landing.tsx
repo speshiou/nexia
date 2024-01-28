@@ -1,27 +1,26 @@
 'use client'
 
 import React from "react";
+import Button from "./button";
 
 const CreateImageLanding: React.FC = () => {
   return (
     <div>
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
         Create images
         </h2>
-        <p className="mt-6 text-lg leading-8 text-gray-600">
+        <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-400">
         Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt amet
         fugiat veniam occaecat fugiat aliqua.
         </p>
         <div className="mt-10 flex gap-x-6 items-center justify-center">
-        <a
-            href="#"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
+        <Button url="#">
             Get started
-        </a>
-        <a href="#" className="text-sm font-semibold leading-6 text-gray-900">
+        </Button>
+        <Button theme="text">
             Learn more <span aria-hidden="true">→</span>
-        </a>
+        </Button>
+        <Button>Create</Button>
         </div>
     </div>
   );

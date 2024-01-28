@@ -4,6 +4,7 @@ import React, { ChangeEvent, useState } from "react";
 import { XMarkIcon, PhotoIcon } from '@heroicons/react/20/solid'
 import { ImageRefType, OutputType, useCreateImageTask } from "./create-image-task";
 import clsx from "clsx";
+import Button from "./button";
 
 interface ImageRefOption {
   label: string
@@ -79,31 +80,34 @@ const CreateImageTextInput: React.FC = () => {
       <div className="flex justify-center gap-x-10 my-4">
         {...outputTypeOptions.map((option) => {
           return <button key={option.value} type="button" className={clsx("font-semibold", {
-            "text-indigo-600": option.value == outputType
+            "dark:text-white": option.value != outputType,
+            "text-indigo-600": option.value == outputType,
           })} onClick={() => setOutputType(option.value)}>{option.label}</button>
         })}
       </div>
-      <div className="flex items-center border">
+      <div className="flex items-center gap-x-4">
         {thumbnail && <img className="w-12" src={thumbnail as string} alt="Preview" onClick={() => setRefImage(null)} />}
-        <input
-          type="text"
-          value={prompt}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          className="border-none px-4 py-3 flex-1 outline-none"
-          placeholder={thumbnail ? "Reimagine ..." : "Describe the image ..."}
-        />
-        {prompt && <button className="p-2" onClick={handleClear}>
-          <XMarkIcon className="h-5 w-5 flex-none text-gray-400" />
-        </button>}
-        <button type="submit" className="bg-indigo-600 text-white rounded px-3 py-2 disabled:bg-gray-300" disabled={taskState == 'processing'}>
-          Create
-        </button>
+        <div className="flex flex-1 items-center rounded-md border">
+          <input
+            type="text"
+            value={prompt}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            className="border-none bg-transparent px-4 py-3 flex-1 outline-none dark:text-white"
+            placeholder={thumbnail ? "Reimagine ..." : "Describe the image ..."}
+          />
+          {prompt && <button className="p-2" onClick={handleClear}>
+            <XMarkIcon className="h-5 w-5 flex-none text-gray-400" />
+          </button>}
+        </div>
+        <Button type="submit" theme="primary" disabled={taskState == 'processing'}>
+          {taskState != "processing" ? "Create": "Creating"}
+        </Button>
       </div>
       {!thumbnail ? <p className="text-xs text-gray-500 p-2 flex items-center gap-x-2">
-        <PhotoIcon className="h-5 w-5 text-gray-400" />
+        <PhotoIcon className="h-5 w-5 text-gray-300" />
         <label htmlFor="imageInput" className="relative cursor-pointer">
-          <span className="py-2 text-blue-500 hover:text-blue-700">Add image reference</span>
+          <span className="py-2 text-indigo-600 dark:text-indigo-500">Add image reference</span>
           <input
             id="imageInput"
             type="file"
