@@ -2,7 +2,6 @@
 
 const querystring = require('node:querystring');
 import crypto from "crypto"
-import { issueDailyGems, upsertTelegramUser } from "./data";
 import { TelegramUser } from "@/types/telegram";
 
 export const _authTelegram = (initData: string) => {

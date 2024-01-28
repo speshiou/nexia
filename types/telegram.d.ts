@@ -1,7 +1,27 @@
 interface TelegramWebApp {
   initData: string
+  MainButton?: MainButton,
   ready: () => void
   expand: () => void
+}
+
+interface MainButton {
+  show: () => void
+  hide: () => void
+  enable: () => void
+  disable: () => void
+  showProgress: () => void
+  hideProgress: () => void
+  onClick: () => void
+  setParams: (params: MainButtonProps) => void 
+}
+
+type MainButtonProps = {
+  text?: string;
+  color?: string;
+  text_color?: string;
+  is_active?: boolean;
+  is_visible?: boolean;
 }
 
 interface TelegramUser {
@@ -25,4 +45,5 @@ declare global {
 export { 
   TelegramWebApp,
   TelegramUser,
+  MainButton,
 }

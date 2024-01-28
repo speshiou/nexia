@@ -130,7 +130,7 @@ const CreateImageTextInput: React.FC = () => {
                 checked={option.value == imageRefType}
                 onChange={() => setImageRefType(option.value)}
               />
-              <label htmlFor={id} className="block text-sm font-medium leading-6 text-gray-900">
+              <label htmlFor={id} className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">
                 {option.label}
               </label>
             </div>
