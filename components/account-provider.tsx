@@ -6,7 +6,8 @@ import { Account } from '@/types/types';
 import { getUser } from '@/lib/actions';
 
 type AccountContextType = {
-    gems: number;
+    account: Account;
+    setAccount: (account: Account) => void
 };
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
@@ -37,7 +38,7 @@ const AccountProvider: FC<React.PropsWithChildren> = ({ children }) => {
         fetchUserData();
     }, [initialized]);
 
-    const contextValue: AccountContextType = { gems: account.gems };
+    const contextValue: AccountContextType = { account, setAccount };
 
     return <AccountContext.Provider value={contextValue}>{children}</AccountContext.Provider>;
 };

@@ -2,8 +2,18 @@
 
 import { getServerSession } from "next-auth"
 import { _authTelegram } from "./auth"
-import { getTelegramUser, issueDailyGems } from "./data"
+import { consumeGems, getTelegramUser, issueDailyGems } from "./data"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { count } from "console"
+
+async function getLoggedInUser() {
+    const session = await getServerSession(authOptions)
+    if (session && session.user) {
+        const telegramUserId = parseInt(session.user.id)
+        return getTelegramUser(telegramUserId)
+    }
+    return null
+}
 
 export async function getUser() {
     const session = await getServerSession(authOptions)
@@ -18,12 +28,18 @@ export async function getUser() {
     return null
 }
 
-export async function txt2img(prompt: string, refImage?: string, imageRefType?: "full" | "face", video: boolean = false, initData?: string) {
-    const HOST = "sdwebui.speshiou.com"
-
-    if (initData != null) {
-        const authData = _authTelegram(initData)
+export async function txt2img(prompt: string, refImage?: string, imageRefType?: "full" | "face", video: boolean = false) {
+    const user = await getLoggedInUser()
+    if (user == null) {
+        throw new Error("Permission Denied")
     }
+
+    const cost = 1
+    if (user.gems < cost) {
+        throw new Error("insufficient Gems")
+    }
+
+    const HOST = "sdwebui.speshiou.com"
 
     let payload: Txt2ImgRequestData = {
         "prompt": prompt,
@@ -111,7 +127,12 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
         images = images.slice(0, images.length - 1)
     }
 
-    return images
+    const updatedUser = await consumeGems(user._id, cost)
+
+    return {
+        "user": updatedUser!,
+        "images": images,
+    }
 }
 
 interface AnimateDiffInputs {

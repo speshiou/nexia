@@ -16,7 +16,11 @@ interface OutputTypeOption {
   value: OutputType
 }
 
-const CreateImageTextInput: React.FC = () => {
+interface CreateImageTextInputProps {
+  hideSubmitButton?: boolean
+}
+
+const CreateImageTextInput: React.FC<CreateImageTextInputProps> = ({ hideSubmitButton = false }) => {
   const [prompt, setPrompt] = useState("")
   const { createImages,
     taskState, thumbnail, setRefImage, imageRefType,
@@ -91,7 +95,7 @@ const CreateImageTextInput: React.FC = () => {
             <XMarkIcon className="h-5 w-5 flex-none text-gray-400" />
           </button>}
         </div>
-        <Button type="submit" className="create-btn" theme="primary" disabled={taskState == 'processing'}>
+        <Button type="submit" theme="primary" className={clsx({ "hidden": hideSubmitButton })} disabled={taskState == 'processing'}>
           {taskState != "processing" ? "Create" : "Creating"}
         </Button>
       </div>

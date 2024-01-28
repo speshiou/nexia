@@ -83,3 +83,28 @@ export const issueDailyGems = async (userId: number) => {
     }
     return result
 }
+
+export const consumeGems = async (userId: number, gems: number) => {
+    const db = await myDatabase()
+    const usersCollection = db.collection<Account>(Collection.TelegramUser)
+    const today = new Date()
+
+    const result = await usersCollection.findOneAndUpdate(
+        { 
+            _id: userId, 
+        },
+        {
+            $set: {
+                last_active: today,
+            },
+            $inc: {    // Increment the gems count if the user document exists
+                gems: -gems
+            }
+        },
+        {
+            returnDocument: "after",
+        }
+    )
+
+    return result
+}

@@ -2,6 +2,7 @@
 
 import { txt2img } from "@/lib/actions";
 import React, { createContext, useState, useContext, useEffect } from "react";
+import { useAccount } from "./account-provider";
 
 export type TaskState = "pending" | "processing" | "done";
 export type ImageRefType = "full" | "face";
@@ -69,6 +70,8 @@ export function CreateImageTaskProvider({ children }: Readonly<{
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [thumbnail, setThumbnail] = useState<string | ArrayBuffer | null>(null);
 
+  const { setAccount } = useAccount()
+
   // Simulate progress increase and task state using useEffect for demo purposes
   useEffect(() => {
     // const progressInterval = setInterval(() => {
@@ -90,6 +93,9 @@ export function CreateImageTaskProvider({ children }: Readonly<{
 
   // Function to upload the image
   const createImages = async (prompt: string) => {
+    if (taskState == "processing") {
+      return
+    }
     const hasRefImage = selectedImage
     // Simulate upload process
     setProgress(0);
@@ -97,12 +103,12 @@ export function CreateImageTaskProvider({ children }: Readonly<{
 
     // Add the uploaded image to the results
     try {
-      
+
       // trim data url prefix
       const encodedImage = (thumbnail as string)?.replace(/^data:.+?,/, "")
-      const images = await txt2img(prompt, encodedImage, imageRefType, outputType == "video")
-
-      setImageResults([...images]);
+      const result = await txt2img(prompt, encodedImage, imageRefType, outputType == "video")
+      setAccount(result.user)
+      setImageResults([...result.images]);
     } catch (error) {
       // TODO: handle errors
       console.log(error)

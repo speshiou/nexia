@@ -30,7 +30,7 @@ export default function ImageCreator() {
 
   return (
     <main className="m-4 lg:m-10">
-      <CreateImageTextInput />
+      <CreateImageTextInput hideSubmitButton={true} />
       <div className="mx-auto my-10 max-w-xl flex flex-wrap text-center">
         <CreateImageContent />
       </div>
