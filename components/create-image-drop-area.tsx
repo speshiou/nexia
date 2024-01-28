@@ -18,7 +18,6 @@ const CreateImageRefDropArea: React.FC<React.PropsWithChildren> = ({ children })
   const muteEvent = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     setDragging(event.type == "dragover")
-    console.log(`event=${event.type}`)
   }
 
   return (

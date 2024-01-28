@@ -30,7 +30,6 @@ export const authOptions: NextAuthOptions = {
                 // Add logic here to look up the user from the credentials supplied
                 let telegramUser: TelegramUser | null = null
                 const authData = req.query
-                console.log(authData)
                 if (authData) {
                     telegramUser = verifyAuthData(process.env.TELEGRAM_BOT_API_TOKEN || "", authData)
                     await upsertTelegramUser(telegramUser)
