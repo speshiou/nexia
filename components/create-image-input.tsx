@@ -50,6 +50,7 @@ const CreateImageTextInput: React.FC<CreateImageTextInputProps> = ({ hideSubmitB
 
   const handleClear = () => {
     setPrompt("");
+    setRefImage(null)
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -67,7 +68,7 @@ const CreateImageTextInput: React.FC<CreateImageTextInputProps> = ({ hideSubmitB
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
+
     createImages(prompt)
   };
 
@@ -90,7 +91,7 @@ const CreateImageTextInput: React.FC<CreateImageTextInputProps> = ({ hideSubmitB
             className="border-none bg-transparent px-4 py-3 flex-1 outline-none dark:text-white max-h-32"
             placeholder={thumbnail ? "Reimagine ..." : "Describe the image ..."}
           ></textarea>
-          {prompt && <button className="p-2" onClick={handleClear}>
+          {(prompt||thumbnail) && <button className="p-2" onClick={handleClear}>
             <XMarkIcon className="h-5 w-5 flex-none text-gray-400" />
           </button>}
         </div>

@@ -10,7 +10,7 @@ const CreateImageResults: React.FC = () => {
     <>
       {...imageResults.map((image) => {
         const imgSrc = image.startsWith('http') ? image : `data:image/png;base64, ${image}`
-        return <img className="w-1/2 p-1" key={imgSrc} src={imgSrc} />
+        return <img className="w-1/2 p-1 rounded-md" key={imgSrc} src={imgSrc} />
       })}
     </>
   );

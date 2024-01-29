@@ -19,7 +19,7 @@ export default function ImageCreator() {
     webApp?.MainButton?.showProgress()
   } else {
     webApp?.MainButton?.setParams({
-      text: outputType == "image" ? "Create Images" : "Create Video",
+      text: outputType == "image" ? "Create Images (💎 1)" : "Create Video (💎 2)",
       color: colors.indigo["600"],
       text_color: colors.white,
       is_active: true,

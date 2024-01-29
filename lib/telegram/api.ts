@@ -92,6 +92,20 @@ class TelegramApi {
         console.log(result)
     }
 
+    async sendAnimation(chatId: number, gif: string, caption: string): Promise<any> {
+        const formData = new FormData();
+        formData.append('chat_id', chatId.toString())
+        formData.append('caption', `<code>${escapeHtml(caption)}</code>`)
+        formData.append('parse_mode', 'HTML')
+
+        const binaryData = Buffer.from(gif, 'base64')
+        const blob = new Blob([binaryData], { type: "image/gif" })
+        formData.append("animation", blob, `${new Date().getMilliseconds()}.gif`)
+
+        const result = await this.request("sendAnimation", formData)
+        console.log(result)
+    }
+
     async setChatMenuButton(chatId: string, menuButton: MenuButton): Promise<any> {
         const formData = new FormData();
         formData.append('chat_id', chatId.toString())

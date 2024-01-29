@@ -34,7 +34,7 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
         throw new Error("Permission Denied")
     }
 
-    const cost = 1
+    const cost = video ? 2 : 1
     if (user.gems < cost) {
         throw new Error("insufficient Gems")
     }
@@ -131,7 +131,11 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
 
     try {
         const telegramApi = new TelegramApi(process.env.TELEGRAM_BOT_API_TOKEN || "")
-        await telegramApi.sendMediaGroup(user._id, images, prompt)
+        if (video) {
+            await telegramApi.sendAnimation(user._id, images[0], prompt)
+        } else {
+            await telegramApi.sendMediaGroup(user._id, images, prompt)
+        }
     } catch (error) {
         console.log(error)
     }
