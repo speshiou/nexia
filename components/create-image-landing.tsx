@@ -9,16 +9,16 @@ import Image from "next/image";
 const CreateImageLanding: React.FC = () => {
   const slides = [
     {
-      img: "/demo/fox.jpg",
+      img: "/images/fox.jpg",
       prompt: "Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt ametfugiat veniam occaecat fugiat aliqua."
     },
     {
-      img: "/demo/fox.jpg",
-      img2: "/demo/tiger.jpeg",
+      img: "/images/fox.jpg",
+      img2: "/images/tiger.jpeg",
       caption: "Reference entire image"
     },
     {
-      img: "/demo/fox.jpg",
+      img: "/images/fox.jpg",
       prompt: "Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt ametfugiat veniam occaecat fugiat aliqua."
     },
   ]
