@@ -43,6 +43,7 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
 
     let payload: Txt2ImgRequestData = {
         "prompt": prompt,
+        "negative_prompt": "easynegative",
         "steps": 20,
         "cfg_scale": 7,
         "width": 512,
@@ -108,6 +109,8 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
             ]
         }
     }
+
+    scripts.ADetailer = adetailerArg
 
     payload["alwayson_scripts"] = scripts
 
@@ -188,14 +191,26 @@ interface ScriptsInputs {
     AnimateDiff?: {
         args: AnimateDiffInputs[]
     }
+    ADetailer?: {
+
+    }
 }
 
 interface Txt2ImgRequestData {
     prompt: string;
+    negative_prompt: string
     steps: number;
     cfg_scale: number;
     width: number;
     height: number;
     batch_size: number;
     alwayson_scripts?: ScriptsInputs;
+}
+
+const adetailerArg = {
+    "args": [
+        {
+            "ad_model": "face_yolov8n.pt",
+        }
+    ],
 }
