@@ -88,7 +88,7 @@ const CreateImageTextInput: React.FC<CreateImageTextInputProps> = ({ hideSubmitB
           <textarea
             value={prompt}
             onChange={handleChange}
-            className="border-none bg-transparent px-4 py-3 flex-1 outline-none dark:text-white max-h-32"
+            className="border-none bg-transparent scrollbar-none px-4 py-3 flex-1 outline-none dark:text-white max-h-32"
             placeholder={thumbnail ? "Reimagine ..." : "Describe the image ..."}
           ></textarea>
           {(prompt||thumbnail) && <button className="p-2" onClick={handleClear}>

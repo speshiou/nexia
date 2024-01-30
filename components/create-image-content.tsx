@@ -20,9 +20,9 @@ const CreateImageContent: React.FC = () => {
       }
     }
   return (
-    <>
+    <div className="mx-auto my-10 max-w-xl flex flex-wrap text-center">
     { mainContent(taskState)}
-    </>
+    </div>
   );
 };
 

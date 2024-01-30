@@ -8,10 +8,8 @@ export default function ImageCreator() {
     <main className="m-4 lg:m-10">
       <CreateImageTaskProvider>
         <CreateImageRefDropArea>
-        <CreateImageTextInput />
-          <div className="mx-auto my-10 max-w-xl flex flex-wrap text-center">
-            <CreateImageContent />
-          </div>
+          <CreateImageTextInput />
+          <CreateImageContent />
         </CreateImageRefDropArea>
       </CreateImageTaskProvider>
     </main>
