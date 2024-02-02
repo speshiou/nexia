@@ -1,29 +1,31 @@
 'use server'
 
-import { getServerSession } from "next-auth"
-import { _authTelegram } from "./auth"
+import { auth } from "./auth"
 import { consumeGems, getTelegramUser, issueDailyGems } from "./data"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import TelegramApi from "./telegram/api"
 
 async function getLoggedInUser() {
-    const session = await getServerSession(authOptions)
-    if (session && session.user) {
+    const session = await auth()
+    if (session && session.user && session.user.id) {
         const telegramUserId = parseInt(session.user.id)
         return getTelegramUser(telegramUserId)
+    } else {
+        // verify email for the standard OAuth providers
     }
     return null
 }
 
 export async function getUser() {
-    const session = await getServerSession(authOptions)
-    if (session && session.user) {
-        const telegramUserId = parseInt(session.user.id)
+    const session = await auth()
+    if (session && session.user && session.user.id) {
+        const telegramUserId = parseInt(session.user.id!)
         const updatedUser = await issueDailyGems(telegramUserId)
         if (updatedUser) {
             return updatedUser
         }
         return await getTelegramUser(telegramUserId)
+    } else {
+        // verify email for the standard OAuth providers
     }
     return null
 }

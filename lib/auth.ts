@@ -1,28 +1,73 @@
-'use server'
-
-const querystring = require('node:querystring');
-import crypto from "crypto"
 import { TelegramUser } from "@/types/telegram";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { verifyAuthData } from "./telegram/auth";
+import { upsertTelegramUser } from "./data";
+import NextAuth, { NextAuthConfig } from "next-auth";
+import querystring from 'node:querystring';
 
-export const _authTelegram = (initData: string) => {
-    const authData = querystring.parse(initData)
-    const checkHash = authData.hash;
-    delete authData.hash;
-  
-    const dataCheckArr = Object.keys(authData)
-      .map(key => `${key}=${authData[key]}`)
-      .sort()
-    const dataCheckString = dataCheckArr.join('\n');
-    const secretKey = crypto.createHmac('sha256', 'WebAppData').update(process.env.TELEGRAM_BOT_API_TOKEN || "").digest()
-    const hash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
-    if (hash !== checkHash) {
-      throw new Error('Data is NOT from Telegram');
-    }
-  
-    if ((Date.now() / 1000 - authData.auth_date) > 86400) {
-      throw new Error('Data is outdated');
-    }
 
-    const user: TelegramUser = JSON.parse(authData.user)
-    return user
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name: string;
+      image: string;
+      email: string;
+    };
+  }
 }
+
+export const config = {
+  theme: {
+    logo: "https://next-auth.js.org/img/logo/logo-sm.png",
+  },
+  providers: [
+    CredentialsProvider({
+      id: "telegram-login",
+      // The name to display on the sign in form (e.g. "Sign in with...")
+      name: "Telegram",
+      // `credentials` is used to generate a form on the sign in page.
+      // You can specify which fields should be submitted, by adding keys to the `credentials` object.
+      // e.g. domain, username, password, 2FA token, etc.
+      // You can pass any HTML attribute to the <input> tag through the object.
+      credentials: {},
+      async authorize(credentials, request: Request) {
+        // Add logic here to look up the user from the credentials supplied
+        let telegramUser: TelegramUser | null = null
+        const url = new URL(request.url)
+        // trim the beginning question mark before parsing the query
+        const authData = querystring.parse(url.search.substring(1))
+        if (authData) {
+          telegramUser = verifyAuthData(process.env.TELEGRAM_BOT_API_TOKEN || "", authData)
+          await upsertTelegramUser(telegramUser)
+        }
+
+        if (telegramUser) {
+          // Any object returned will be saved in `user` property of the JWT
+          // The user property should match the format of the OAuth user data
+          const user = {
+            id: telegramUser.id.toString(),
+            email: telegramUser.id.toString(),
+            name: [telegramUser.first_name, telegramUser.last_name || ""].join(" ").trim(),
+            // image: telegramUser.photo_url,
+          }
+          return user
+        } else {
+          // If you return null then an error will be displayed advising the user to check their details.
+          return null
+
+          // You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async session({ session }) {
+      // assign id field for telegram provider
+      session.user.id = session.user.email
+      return session;
+    },
+  },
+} satisfies NextAuthConfig
+
+export const { handlers, auth, signIn, signOut } = NextAuth(config)
