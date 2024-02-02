@@ -1,8 +1,7 @@
 import { getLocalizedText } from "@/lib/i18n";
 import Image from "next/image";
 
-export default async function Home({ params }: Readonly<{
-  children: React.ReactNode,
+export default async function Page({ params }: Readonly<{
   params: {
     lang: string,
   }
