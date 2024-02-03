@@ -41,17 +41,28 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
         throw new Error("insufficient Gems")
     }
 
-    const HOST = "sdwebui.speshiou.com"
-
+    let host = process.env.SD_HOST
     let payload: Txt2ImgRequestData = {
         "prompt": prompt,
-        "negative_prompt": "easynegative",
-        "steps": 20,
-        "cfg_scale": 7,
-        "width": 512,
-        "height": 512,
+        "steps": 7,
+        "cfg_scale": 2,
+        "width": 1024,
+        "height": 1024,
         // "batch_count": 2,
         "batch_size": 2,
+    }
+    if (refImage || video) {
+        host = process.env.SD_CONTROL_NET_HOST
+        payload = {
+            "prompt": prompt,
+            "negative_prompt": "easynegative",
+            "steps": 20,
+            "cfg_scale": 7,
+            "width": 512,
+            "height": 512,
+            // "batch_count": 2,
+            "batch_size": 2,
+        }
     }
 
     const scripts: ScriptsInputs = {}
@@ -112,11 +123,11 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
         }
     }
 
-    scripts.ADetailer = adetailerArg
+    // scripts.ADetailer = adetailerArg
 
     payload["alwayson_scripts"] = scripts
 
-    const response = await fetch(`https://${HOST}/sdapi/v1/txt2img`, {
+    const response = await fetch(`${host}/sdapi/v1/txt2img`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -133,7 +144,6 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
     }
 
     const updatedUser = await consumeGems(user._id, cost)
-
     try {
         const telegramApi = new TelegramApi(process.env.TELEGRAM_BOT_API_TOKEN || "")
         if (video) {
@@ -200,7 +210,7 @@ interface ScriptsInputs {
 
 interface Txt2ImgRequestData {
     prompt: string;
-    negative_prompt: string
+    negative_prompt?: string
     steps: number;
     cfg_scale: number;
     width: number;
