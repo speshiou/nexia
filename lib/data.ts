@@ -1,7 +1,6 @@
 'use server'
 
 import { ObjectId } from "mongodb";
-import clientPromise from "./mongodb";
 import { TelegramUser } from "@/types/telegram";
 import { Account } from "@/types/types";
 
@@ -12,6 +11,7 @@ enum Collection {
 }
 
 const myDatabase = async () => {
+    const clientPromise = (await import('./mongodb')).default
     const client = await clientPromise
     return client.db("image_creator")
 }
