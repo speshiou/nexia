@@ -16,8 +16,9 @@ steps:
   - $REPO_NAME
   - '--image'
   - 'gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA'
-  - '--region'
-  - 'us-central1'
+  - '--region=us-central1'
+  - '--port=3000'
+  - '--allow-unauthenticated'
 images:
 - 'gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA'
 options:
