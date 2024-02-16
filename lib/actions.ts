@@ -43,7 +43,8 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
 
     let host = process.env.SD_HOST
     let payload: Txt2ImgRequestData = {
-        "prompt": prompt,
+        "prompt": `masterpiece, best quality, ${prompt}`,
+        "negative_prompt": "ugly, deformed, noisy, blurry, low contrast, text, BadDream, 3d, cgi, render, fake, big forehead, long neck",
         "steps": 7,
         "cfg_scale": 2,
         "width": 1024,
@@ -51,19 +52,19 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
         // "batch_count": 2,
         "batch_size": 2,
     }
-    if (refImage || video) {
-        host = process.env.SD_CONTROL_NET_HOST
-        payload = {
-            "prompt": prompt,
-            "negative_prompt": "easynegative",
-            "steps": 20,
-            "cfg_scale": 7,
-            "width": 512,
-            "height": 512,
-            // "batch_count": 2,
-            "batch_size": 2,
-        }
-    }
+    // if (refImage || video) {
+    //     host = process.env.SD_CONTROL_NET_HOST
+    //     payload = {
+    //         "prompt": prompt,
+    //         "negative_prompt": "easynegative",
+    //         "steps": 20,
+    //         "cfg_scale": 7,
+    //         "width": 512,
+    //         "height": 512,
+    //         // "batch_count": 2,
+    //         "batch_size": 2,
+    //     }
+    // }
 
     const scripts: ScriptsInputs = {}
 
@@ -76,8 +77,8 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
         }
         switch (imageRefType) {
             case "full":
-                inputs.module = "tile_resample"
-                inputs.model = "control_v11f1e_sd15_tile [a371b31b]"
+                inputs.module = "depth_midas"
+                inputs.model = "t2i-adapter_diffusers_xl_depth_midas [9c183166]"
                 inputs.weight = 0.6
                 break
             case "face":
@@ -123,7 +124,7 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
         }
     }
 
-    // scripts.ADetailer = adetailerArg
+    scripts.ADetailer = adetailerArg
 
     payload["alwayson_scripts"] = scripts
 
@@ -223,6 +224,7 @@ const adetailerArg = {
     "args": [
         {
             "ad_model": "face_yolov8n.pt",
+            "ad_denoising_strength": 0.6,
         }
     ],
 }
