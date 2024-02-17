@@ -6,8 +6,17 @@ interface ApiResponse {
     result: any;
 }
 
-interface ReplyMarkup {
-    /* Define the structure for the reply markup */
+export type InlineKeyboardMarkup = {
+    inline_keyboard: InlineKeyboardButton[][]
+}
+
+export type InlineKeyboardButton = {
+    text: string
+    web_app?: WebAppInfo
+}
+
+export type WebAppInfo = {
+    url: string
 }
 
 interface MenuButton {
@@ -39,22 +48,24 @@ class TelegramApi {
 
         const response = await fetch(requestUrl, options);
         if (!response.ok) {
+            console.log(await response.text())
             throw new Error('Telegram API Error: ' + response.statusText);
         }
         const result = await response.json()
         if (!result.ok) {
+            console.log(await response.text())
             throw new Error('Telegram API Error: ' + result.description);
         }
         return result.result;
     }
 
-    async sendMessage(chatId: number, message: string, replyMarkup?: ReplyMarkup): Promise<any> {
+    async sendMessage(chatId: number, message: string, replyMarkup?: InlineKeyboardMarkup): Promise<any> {
         const formData = new FormData();
         formData.append('chat_id', chatId.toString())
         formData.append('text', message)
 
         if (replyMarkup) {
-            // data['reply_markup'] = JSON.stringify(replyMarkup);
+            formData.append('reply_markup', JSON.stringify(replyMarkup))
         }
 
         return this.request('sendMessage', formData);

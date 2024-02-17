@@ -25,13 +25,29 @@ type MainButtonProps = {
   is_visible?: boolean;
 }
 
-interface TelegramUser {
+type TelegramUser = {
   id: number;
-  first_name: string;
-  last_name: string;
-  username: string;
-  language_code: string;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+}
+
+type TelegramAuthUser = TelegramUser & {
   allows_write_to_pm: boolean;
+}
+
+export interface WebhookUpdate {
+  update_id: number
+  message: {
+    message_id: number
+    from: TelegramUser
+    chat: {
+      id: number
+      type: "private"
+    }
+    date: number
+    text?: string
+  }
 }
 
 
@@ -45,6 +61,7 @@ declare global {
 
 export { 
   TelegramWebApp,
+  TelegramAuthUser,
   TelegramUser,
   MainButton,
 }
