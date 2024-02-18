@@ -1,6 +1,6 @@
 'use client'
 
-import { txt2img } from "@/lib/actions";
+import { inference, txt2img } from "@/lib/actions";
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useAccount } from "./account-provider";
 
@@ -106,9 +106,15 @@ export function CreateImageTaskProvider({ children }: Readonly<{
 
       // trim data url prefix
       const encodedImage = (thumbnail as string)?.replace(/^data:.+?,/, "")
-      const result = await txt2img(prompt, encodedImage, imageRefType, outputType == "video")
-      setAccount(result.user)
-      setImageResults([...result.images]);
+      if (encodedImage && imageRefType == "face") {
+        const result = await inference(prompt, encodedImage, imageRefType)
+        setAccount(result.user)
+        setImageResults([...result.images]);
+      } else {
+        const result = await txt2img(prompt, encodedImage, imageRefType, outputType == "video")
+        setAccount(result.user)
+        setImageResults([...result.images]);
+      }
     } catch (error) {
       // TODO: handle errors
       console.log(error)

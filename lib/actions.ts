@@ -3,6 +3,7 @@
 import { auth } from "./auth"
 import { consumeGems, getTelegramUser, issueDailyGems } from "./data"
 import TelegramApi from "./telegram/api"
+import { base64PngPrefix } from "./utils"
 
 async function getLoggedInUser() {
     const session = await auth()
@@ -137,24 +138,74 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
     });
 
     const data = await response.json();
-    let images = data["images"]
+    let images = data["images"] as string[]
     // TODO: trim meta data
     if (refImage) {
         // SD WebUI would append the preprocess image to the end of the result
         images = images.slice(0, images.length - 1)
     }
 
-    const updatedUser = await consumeGems(user._id, cost)
+    return await _response(
+        user._id,
+        cost,
+        prompt,
+        images,
+        video,
+    )
+}
+
+export async function inference(prompt: string, refImage?: string, imageRefType?: "full" | "face") {
+    const user = await getLoggedInUser()
+    if (user == null) {
+        throw new Error("Permission Denied")
+    }
+
+    const host = process.env.DIFFUSERS_HOST
+    const cost = 1
+    const payload = {
+        "input": {
+          "prompt": prompt,
+          "ref_image": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/aa748fc2-710a-43fa-aa72-2abcd6cbd9f9/sdxl.jpg?format=1500w"
+        }
+    }
+    const response = await fetch(`${host}/predictions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const result = await response.json()
+    let images = result.output as string[]
+    images = images.map((image) => {
+        return image.replace(new RegExp(`^${base64PngPrefix}\s*`), "")
+    })
+
+    return await _response(
+        user._id,
+        cost,
+        prompt,
+        images,
+    )
+}
+
+async function _response(userId: number, cost: number, prompt: string, images: string[], video: boolean = false) {
+    const updatedUser = await consumeGems(userId, cost)
     try {
         const telegramApi = new TelegramApi(process.env.TELEGRAM_BOT_API_TOKEN || "")
         if (video) {
-            await telegramApi.sendAnimation(user._id, images[0], prompt)
+            await telegramApi.sendAnimation(userId, images[0], prompt)
         } else {
-            await telegramApi.sendMediaGroup(user._id, images, prompt)
+            await telegramApi.sendMediaGroup(userId, images, prompt)
         }
     } catch (error) {
         console.log(error)
     }
+
+    images = images.map((image) => {
+        return `${base64PngPrefix}${image}`
+    })
 
     return {
         "user": updatedUser!,
