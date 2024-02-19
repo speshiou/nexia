@@ -1,10 +1,11 @@
 'use server'
 
+import { randomUUID } from "crypto"
 import { auth } from "./auth"
 import { consumeGems, getTelegramUser, issueDailyGems } from "./data"
 import { upload } from "./gcs"
 import TelegramApi from "./telegram/api"
-import { base64PngPrefix } from "./utils"
+import { base64PngPrefix, dateStamp } from "./utils"
 
 type DiffusersInputs = {
     prompt: string
@@ -172,8 +173,8 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
 
     if (refImage) {
         const binaryData = Buffer.from(refImage, 'base64')
-        const blob = new Blob([binaryData], { type: "image/png" })
-        const refImageUrl = await upload("test.jpg", blob)
+        const blob = new Blob([binaryData])
+        const refImageUrl = await upload(`${dateStamp()}/${randomUUID()}.jpg`, blob)
         inputs["ref_image"] = refImageUrl
     }
 
