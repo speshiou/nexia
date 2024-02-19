@@ -10,6 +10,7 @@
     "i18n": "i18next-scanner"
   },
   "dependencies": {
+    "@google-cloud/storage": "^7.7.0",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.1",
     "clsx": "^2.1.0",

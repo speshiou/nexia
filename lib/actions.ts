@@ -2,8 +2,14 @@
 
 import { auth } from "./auth"
 import { consumeGems, getTelegramUser, issueDailyGems } from "./data"
+import { upload } from "./gcs"
 import TelegramApi from "./telegram/api"
 import { base64PngPrefix } from "./utils"
+
+type DiffusersInputs = {
+    prompt: string
+    ref_image?: string
+}
 
 async function getLoggedInUser() {
     const session = await auth()
@@ -160,12 +166,22 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
         throw new Error("Permission Denied")
     }
 
+    const inputs: DiffusersInputs = {
+        "prompt": prompt,
+    }
+
+    if (refImage) {
+        const binaryData = Buffer.from(refImage, 'base64')
+        const blob = new Blob([binaryData], { type: "image/png" })
+        const refImageUrl = await upload("test.jpg", blob)
+        inputs["ref_image"] = refImageUrl
+    }
+
     const host = process.env.DIFFUSERS_HOST
     const cost = 1
     const payload = {
         "input": {
-          "prompt": prompt,
-          "ref_image": "https://images.squarespace-cdn.com/content/v1/6213c340453c3f502425776e/aa748fc2-710a-43fa-aa72-2abcd6cbd9f9/sdxl.jpg?format=1500w"
+          ...inputs
         }
     }
     const response = await fetch(`${host}/predictions`, {
