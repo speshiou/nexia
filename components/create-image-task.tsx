@@ -106,7 +106,7 @@ export function CreateImageTaskProvider({ children }: Readonly<{
 
       // trim data url prefix
       const encodedImage = (thumbnail as string)?.replace(/^data:.+?,/, "")
-      if (encodedImage && imageRefType == "face") {
+      if (outputType != "video") {
         const result = await inference(prompt, encodedImage, imageRefType)
         setAccount(result.user)
         setImageResults([...result.images]);

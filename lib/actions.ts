@@ -9,7 +9,11 @@ import { base64PngPrefix, dateStamp } from "./utils"
 
 type DiffusersInputs = {
     prompt: string
+    negative_prompt?: string
+    width: number,
+    height: number,
     ref_image?: string
+    faceid_image?: string
 }
 
 async function getLoggedInUser() {
@@ -169,13 +173,20 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
 
     const inputs: DiffusersInputs = {
         "prompt": prompt,
+        "negative_prompt": "ugly, deformed, noisy, blurry, low contrast, text, BadDream, 3d, cgi, render, fake, big forehead, long neck",
+        "width": 1024,
+        "height": 1024,
     }
 
     if (refImage) {
         const binaryData = Buffer.from(refImage, 'base64')
         const blob = new Blob([binaryData])
         const refImageUrl = await upload(`${dateStamp()}/${randomUUID()}.jpg`, blob)
-        inputs["ref_image"] = refImageUrl
+        if (imageRefType == "face") {
+            inputs["faceid_image"] = refImageUrl
+        } else {
+            inputs["ref_image"] = refImageUrl
+        }
     }
 
     const host = process.env.DIFFUSERS_HOST
