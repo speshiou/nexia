@@ -1,6 +1,6 @@
 'use server'
 
-import { GetSignedUrlConfig, SignedPostPolicyV4Output, Storage } from "@google-cloud/storage";
+import { GenerateSignedPostPolicyV4Options, GetSignedUrlConfig, SignedPostPolicyV4Output, Storage } from "@google-cloud/storage";
 
 const storage = new Storage();
 const bucketName = process.env.GCS_BUCKET_NAME!
@@ -12,10 +12,10 @@ export async function upload(fileName: string, blob: Blob) {
     // These options will allow temporary uploading of a file
     // through an HTML form.
     const expires = Date.now() + 10 * 60 * 1000; //  10 minutes
-    const options = {
+    const options: GenerateSignedPostPolicyV4Options = {
         expires,
         fields: { 'x-goog-meta-test': 'data' },
-    };
+    }
 
     // Get a v4 signed policy for uploading file
     const [response] = await file.generateSignedPostPolicyV4(options);
