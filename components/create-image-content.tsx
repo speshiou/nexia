@@ -5,6 +5,7 @@ import { TaskState, useCreateImageTask } from "./create-image-task";
 import CreateImageResults from "./create-image-results";
 import CreateImageProcessing from "./create-image-processing";
 import CreateImageLanding from "./create-image-landing";
+import Disclaimer from "./disclaimer";
 
 const CreateImageContent: React.FC = () => {
     const { taskState } = useCreateImageTask()
@@ -20,8 +21,9 @@ const CreateImageContent: React.FC = () => {
       }
     }
   return (
-    <div className="mx-auto my-10 max-w-xl flex flex-wrap text-center">
+    <div className="mx-auto my-10 max-w-xl text-center">
     { mainContent(taskState)}
+    <Disclaimer />
     </div>
   );
 };
