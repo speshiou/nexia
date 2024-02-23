@@ -12,6 +12,7 @@ type DiffusersInputs = {
     negative_prompt?: string
     width: number,
     height: number,
+    num_outputs: number,
     ref_image?: string
     faceid_image?: string
 }
@@ -172,10 +173,11 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
     }
 
     const inputs: DiffusersInputs = {
-        "prompt": prompt,
-        "negative_prompt": "ugly, deformed, noisy, blurry, low contrast, text, BadDream, 3d, cgi, render, fake, big forehead, long neck",
-        "width": 1024,
-        "height": 1024,
+        prompt: `masterpiece, best quality, ${prompt}`,
+        negative_prompt: "ugly, deformed, noisy, blurry, low contrast, text, BadDream, 3d, cgi, render, fake, big forehead, long neck",
+        width: 1024,
+        height: 1024,
+        num_outputs: 2,
     }
 
     if (refImage) {
@@ -193,7 +195,7 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
     const cost = 1
     const payload = {
         "input": {
-          ...inputs
+            ...inputs
         }
     }
     const response = await fetch(`${host}/predictions`, {
