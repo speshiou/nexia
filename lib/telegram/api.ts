@@ -100,7 +100,6 @@ class TelegramApi {
         formData.append('media', JSON.stringify(mediaArray))
 
         const result = await this.request("sendMediaGroup", formData)
-        console.log(result)
     }
 
     async sendAnimation(chatId: number, gif: string, caption: string): Promise<any> {
@@ -114,7 +113,6 @@ class TelegramApi {
         formData.append("animation", blob, `${new Date().getMilliseconds()}.gif`)
 
         const result = await this.request("sendAnimation", formData)
-        console.log(result)
     }
 
     async setChatMenuButton(chatId: string, menuButton: MenuButton): Promise<any> {

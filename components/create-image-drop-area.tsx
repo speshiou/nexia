@@ -8,7 +8,6 @@ const CreateImageRefDropArea: React.FC<React.PropsWithChildren> = ({ children })
   const { setRefImage, dragging, setDragging } = useCreateImageTask()
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    console.log("handleDrop")
     event.preventDefault();
     const file = event.dataTransfer.files[0];
     setRefImage(file)
