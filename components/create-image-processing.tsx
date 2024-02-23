@@ -1,28 +1,22 @@
 'use client'
 
+import Image from "next/image";
 import React from "react";
 
 const CreateImageProcessing: React.FC = () => {
+  const index = Math.floor(Math.random() * 3) + 1
+  const imgSrc = `/images/creating${index}.jpeg`
   return (
-    <div>
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+    <div className="flex flex-col items-center m-auto">
+      <h2 className="mb-8 text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
         Creating images ...
-        </h2>
-        <p className="mt-6 text-lg leading-8 text-gray-600">
-        Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt amet
-        fugiat veniam occaecat fugiat aliqua.
-        </p>
-        <div className="mt-10 flex gap-x-6 items-center justify-center">
-        <a
-            href="#"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-            Get started
-        </a>
-        <a href="#" className="text-sm font-semibold leading-6 text-gray-900">
-            Learn more <span aria-hidden="true">→</span>
-        </a>
-        </div>
+      </h2>
+      <Image
+        src={imgSrc}
+        width={512}
+        height={512}
+        className="flex-1 aspect-square rounded-md max-w-60 lg:max-w-sm"
+        alt="Demo image" />
     </div>
   );
 };

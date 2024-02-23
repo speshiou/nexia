@@ -74,14 +74,14 @@ const CreateImageTextInput: React.FC<CreateImageTextInputProps> = ({ hideSubmitB
 
   return (
     <form id="main-form" onSubmit={handleSubmit}>
-      <div className="flex justify-center gap-x-10 my-4">
+      {/* <div className="flex justify-center gap-x-10 my-4">
         {...outputTypeOptions.map((option) => {
           return <button key={option.value} type="button" className={clsx("font-semibold", {
             "dark:text-white": option.value != outputType,
             "text-indigo-600": option.value == outputType,
           })} onClick={() => setOutputType(option.value)}>{option.label}</button>
         })}
-      </div>
+      </div> */}
       <div className="flex items-center gap-x-4">
         <div className="flex flex-1 items-center rounded-md border">
           {thumbnail && <img className="w-12 ml-4" src={thumbnail as string} alt="Preview" onClick={() => setRefImage(null)} />}

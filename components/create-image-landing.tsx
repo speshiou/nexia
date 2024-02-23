@@ -9,41 +9,44 @@ import Image from "next/image";
 const CreateImageLanding: React.FC = () => {
   const slides = [
     {
-      img: "/images/fox.jpg",
-      prompt: "Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt ametfugiat veniam occaecat fugiat aliqua."
+      title: "Text to Image",
+      img: "/images/bunny.jpg",
+      prompt: "\"A bunny mage standing on an ancient book\""
     },
     {
-      img: "/images/fox.jpg",
-      img2: "/images/tiger.jpeg",
-      caption: "Reference entire image"
+      title: "Create from an Image",
+      img: "/images/bunny.jpg",
+      img2: "/images/panda.jpg",
+      caption: "\"A panda mage standing on a magic circle, fire spell, snowing\""
     },
     {
-      img: "/images/fox.jpg",
-      prompt: "Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt ametfugiat veniam occaecat fugiat aliqua."
+      title: "Face ID",
+      img: "/images/faceid.jpg",
+      img2: "/images/wonder_woman2.jpg",
+      caption: "\"Wonder Woman\""
     },
   ]
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-        Create images
-      </h2>
       <Swiper
-        className="mt-4"
         spaceBetween={50}
         slidesPerView={1}
         autoplay={{
-          delay: 2500,
+          delay: 5000,
           disableOnInteraction: false,
         }}
         modules={[Autoplay]}
-        onSlideChange={() => console.log('slide change')}
-        onSwiper={(swiper) => console.log(swiper)}
+        onSlideChange={() => { }}
+        onSwiper={(swiper) => { }}
       >
         {...slides.map((data) => {
-          return <SwiperSlide key={data.img} className="dark:text-white">
+          return <SwiperSlide key={data.title} className="dark:text-white">
+            <h2 className="mb-8 text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+              {data.title}
+            </h2>
             <div className="w-full flex items-center gap-x-2">
               <div className="flex-1">
-                <Image 
+                <Image
                   src={data.img}
                   width={512}
                   height={512}
@@ -61,7 +64,7 @@ const CreateImageLanding: React.FC = () => {
                 alt="Demo image"
               /></div>}
             </div>
-            <p className="p-4">
+            <p className="p-4 text-gray-600 dark:text-gray-400">
               {data.caption}
             </p>
           </SwiperSlide>
