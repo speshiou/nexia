@@ -70,10 +70,13 @@ export function CreateImageTaskProvider({ children }: Readonly<{
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [thumbnail, setThumbnail] = useState<string | ArrayBuffer | null>(null);
 
-  const { setAccount } = useAccount()
+  const { account, setAccount } = useAccount()
 
   // Simulate progress increase and task state using useEffect for demo purposes
   useEffect(() => {
+    if (account.processing_job_id && !account.last_outputs) {
+      setTaskState("processing")
+    }
     // const progressInterval = setInterval(() => {
     //   setProgress((prevProgress) => (prevProgress < 100 ? prevProgress + 10 : 100));
     // }, 1000);
@@ -89,7 +92,7 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     return () => {
       // clearInterval(progressInterval);
     };
-  }, []);
+  }, [account]);
 
   // Function to upload the image
   const createImages = async (prompt: string) => {

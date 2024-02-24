@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto"
 import { auth } from "./auth"
-import { consumeGems, getTelegramUser, issueDailyGems } from "./data"
+import { acquireJobLock, consumeGems, getTelegramUser, issueDailyGems } from "./data"
 import { upload } from "./gcs"
 import TelegramApi from "./telegram/api"
 import { base64PngPrefix, dateStamp } from "./utils"
@@ -198,6 +198,13 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
             ...inputs
         }
     }
+
+    const lockAcquired = await acquireJobLock(user._id, randomUUID(), prompt, refImage)
+    if (!lockAcquired) {
+        throw new Error("locked")
+    }
+    
+
     const response = await fetch(`${host}/predictions`, {
         method: 'POST',
         headers: {
@@ -221,7 +228,7 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
 }
 
 async function _response(userId: number, cost: number, prompt: string, images: string[], video: boolean = false) {
-    const updatedUser = await consumeGems(userId, cost)
+    const updatedUser = await consumeGems(userId, cost, images)
     try {
         const telegramApi = new TelegramApi(process.env.TELEGRAM_BOT_API_TOKEN || "")
         if (video) {
