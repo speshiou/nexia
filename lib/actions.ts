@@ -45,7 +45,7 @@ export async function getUser() {
 
 export async function txt2img(prompt: string, refImage?: string, imageRefType?: "full" | "face", video: boolean = false) {
     const user = await getLoggedInUser()
-    if (user == null) {
+    if (!user) {
         throw new Error("Permission Denied")
     }
 
@@ -168,7 +168,7 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
 
 export async function inference(prompt: string, refImage?: string, imageRefType?: "full" | "face") {
     const user = await getLoggedInUser()
-    if (user == null) {
+    if (!user) {
         throw new Error("Permission Denied")
     }
 

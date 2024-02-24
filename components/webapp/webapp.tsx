@@ -2,7 +2,6 @@
 
 import { useTelegram } from "./telegram-provider"
 import Header from './header'
-import { AccountProvider } from '../account-provider'
 import ImageCreator from './image_creator'
 import { CreateImageTaskProvider } from '../create-image-task'
 import { EventHandler, ViewportChangedProps } from "@/types/telegram"
@@ -28,11 +27,11 @@ export default function WebApp() {
     webApp?.onEvent("viewportChanged", onViewportChanged)
 
     return (
-        <AccountProvider>
+        <>
             <Header />
             <CreateImageTaskProvider>
                 <ImageCreator />
             </CreateImageTaskProvider>
-        </AccountProvider>
+        </>
     )
 }
