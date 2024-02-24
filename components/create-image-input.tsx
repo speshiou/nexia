@@ -69,7 +69,9 @@ const CreateImageTextInput: React.FC<CreateImageTextInputProps> = ({ hideSubmitB
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    createImages(prompt)
+    if (prompt.trim()) {
+      createImages(prompt.trim())
+    }
   };
 
   return (
