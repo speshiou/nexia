@@ -3,6 +3,16 @@ interface TelegramWebApp {
   MainButton?: MainButton,
   ready: () => void
   expand: () => void
+  onEvent: (eventType: EventType, eventHandler: EventHandler) => void
+  offEvent: (eventType: EventType, eventHandler: EventHandler) => void
+}
+
+export type EventType = "viewportChanged"
+
+export type EventHandler<T> = (props: T) => void;
+
+export interface ViewportChangedProps {
+  isStateStable: boolean
 }
 
 interface MainButton {
