@@ -191,19 +191,23 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
         }
     }
 
-    const host = process.env.DIFFUSERS_HOST
-    const cost = 1
-    const payload = {
-        "input": {
-            ...inputs
-        }
-    }
 
-    const lockAcquired = await acquireJobLock(user._id, randomUUID(), prompt, refImage)
+    const jobID = randomUUID()
+    const lockAcquired = await acquireJobLock(user._id, jobID, prompt, refImage)
     if (!lockAcquired) {
         throw new Error("locked")
     }
-    
+
+    const host = process.env.DIFFUSERS_HOST
+    const cost = 1
+    const payload = {
+        "id": jobID,
+        "input": {
+            ...inputs
+        },
+        "webhook": `${process.env.HOST}/webhook/prediction`,
+        "webhook_events_filter": ["start", "completed"],
+    }
 
     const response = await fetch(`${host}/predictions`, {
         method: 'POST',
@@ -241,6 +245,9 @@ async function _response(userId: number, cost: number, prompt: string, images: s
     }
 
     images = images.map((image) => {
+        if (URL.canParse(image)) {
+            return image;
+        }
         return `${base64PngPrefix}${image}`
     })
 

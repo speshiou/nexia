@@ -11,6 +11,9 @@ const CreateImageProcessing: React.FC = () => {
       <h2 className="mb-8 text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
         Creating images ...
       </h2>
+      <p className="flex-1 mb-8 text-gray-600 dark:text-gray-400">
+        Feel free to close this window. The images will will be sent to you when they're ready.
+      </p>
       <Image
         src={imgSrc}
         width={512}

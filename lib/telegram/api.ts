@@ -77,24 +77,33 @@ class TelegramApi {
         const formData = new FormData();
         formData.append('chat_id', chatId.toString())
 
-        photos.forEach((base64Image, index) => {
-            const filename = `photo${index}.png`
-            const media: Media = {
-                type: 'photo',
-                media: `attach://${filename}`
+        photos.forEach((photo, index) => {
+            if (URL.canParse(photo)) {
+                const media: Media = {
+                    type: 'photo',
+                    media: photo,
+                }
+                mediaArray.push(media);
+            } else {
+                const base64Image = photo
+                const filename = `photo${index}.png`
+                const media: Media = {
+                    type: 'photo',
+                    media: `attach://${filename}`
+                }
+    
+                if (index === 0) {
+                    media.caption = `<code>${escapeHtml(caption)}</code>`;
+                    media.parse_mode = 'HTML';
+                }
+    
+                mediaArray.push(media);
+    
+                const binaryData = Buffer.from(base64Image, 'base64')
+    
+                const blob = new Blob([binaryData], { type: "image/png" })
+                formData.append(filename, blob, filename)
             }
-
-            if (index === 0) {
-                media.caption = `<code>${escapeHtml(caption)}</code>`;
-                media.parse_mode = 'HTML';
-            }
-
-            mediaArray.push(media);
-
-            const binaryData = Buffer.from(base64Image, 'base64')
-
-            const blob = new Blob([binaryData], { type: "image/png" })
-            formData.append(filename, blob, filename)
         })
 
         formData.append('media', JSON.stringify(mediaArray))
