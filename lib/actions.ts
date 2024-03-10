@@ -2,10 +2,13 @@
 
 import { randomUUID } from "crypto"
 import { auth } from "./auth"
-import { acquireJobLock, consumeGems, getTelegramUser, issueDailyGems } from "./data"
+import { acquireJobLock, consumeGems, createJob, getJobById, getTelegramUser, issueDailyGems, releaseJobLock, updateJobStatus } from "./data"
 import { upload } from "./gcs"
 import TelegramApi from "./telegram/api"
 import { base64PngPrefix, dateStamp } from "./utils"
+import { Job, JobStatus } from "@/types/types"
+import { CogPredictionResult } from "@/app/webhook/prediction/route"
+import { ObjectId } from "mongodb"
 
 type DiffusersInputs = {
     prompt: string
@@ -17,26 +20,18 @@ type DiffusersInputs = {
     faceid_image?: string
 }
 
-async function getLoggedInUser() {
+export async function getUser(maybeIssueDailyGems: boolean = false) {
     const session = await auth()
     if (session && session.user && session.user.id) {
-        const telegramUserId = parseInt(session.user.id)
-        return getTelegramUser(telegramUserId)
-    } else {
-        // verify email for the standard OAuth providers
-    }
-    return null
-}
-
-export async function getUser() {
-    const session = await auth()
-    if (session && session.user && session.user.id) {
-        const telegramUserId = parseInt(session.user.id!)
-        const updatedUser = await issueDailyGems(telegramUserId)
-        if (updatedUser) {
-            return updatedUser
+        const userId = new ObjectId(session.user.id)
+        if (maybeIssueDailyGems) {
+            const updatedUser = await issueDailyGems(userId)
+            if (updatedUser) {
+                return updatedUser
+            }
         }
-        return await getTelegramUser(telegramUserId)
+        
+        return await getTelegramUser(userId)
     } else {
         // verify email for the standard OAuth providers
     }
@@ -44,7 +39,7 @@ export async function getUser() {
 }
 
 export async function txt2img(prompt: string, refImage?: string, imageRefType?: "full" | "face", video: boolean = false) {
-    const user = await getLoggedInUser()
+    const user = await getUser()
     if (!user) {
         throw new Error("Permission Denied")
     }
@@ -167,7 +162,7 @@ export async function txt2img(prompt: string, refImage?: string, imageRefType?: 
 }
 
 export async function inference(prompt: string, refImage?: string, imageRefType?: "full" | "face") {
-    const user = await getLoggedInUser()
+    const user = await getUser()
     if (!user) {
         throw new Error("Permission Denied")
     }
@@ -191,17 +186,32 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
         }
     }
 
-
-    const jobID = randomUUID()
-    const lockAcquired = await acquireJobLock(user._id, jobID, prompt, refImage)
-    if (!lockAcquired) {
+    const newJobId = await acquireJobLock(user._id)
+    if (!newJobId) {
         throw new Error("locked")
     }
 
-    const host = process.env.DIFFUSERS_HOST
     const cost = 1
+
+    const newJob: Job = {
+        _id: newJobId,
+        user: user._id,
+        cost: cost,
+        start_time: new Date(),
+        status: "start",
+        metadata: {
+            image: {
+                prompt: prompt,
+                ref_image: refImage,
+            }
+        },
+    }
+
+    const createdJobId = await createJob(newJob)
+
+    const host = process.env.DIFFUSERS_HOST
     const payload = {
-        "id": jobID,
+        "id": createdJobId.toString(),
         "input": {
             ...inputs
         },
@@ -212,36 +222,62 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
     const response = await fetch(`${host}/predictions`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Prefer': 'respond-async',
         },
         body: JSON.stringify(payload)
     });
 
-    const result = await response.json()
-    let images = result.output as string[]
-    images = images.map((image) => {
-        return image.replace(new RegExp(`^${base64PngPrefix}\s*`), "")
-    })
-
-    return await _response(
-        user._id,
-        cost,
-        prompt,
-        images,
-    )
+    return response.status == 202 ? createdJobId.toString() : null
 }
 
-async function _response(userId: number, cost: number, prompt: string, images: string[], video: boolean = false) {
-    const updatedUser = await consumeGems(userId, cost, images)
+export async function retrieveJobResult(jobId: string): Promise<{
+    status: JobStatus,
+    outputs?: string[] | null
+}> {
+    const user = await getUser()
+    if (!user) {
+        throw new Error("Permission Denied")
+    }
+
+    const job = await getJobById(new ObjectId(jobId))
+    console.log(job)
+    if (!job) {
+        await releaseJobLock(user._id)
+        return {
+            status: "failed"
+        }
+    } else if (job.status != "succeeded" && job.status != "failed") {
+        const updatedUser = await releaseJobLock(user._id, job._id)
+        if (updatedUser) {
+            return {
+                status: "failed"
+            }
+        }
+    }
+    return {
+        status: job.status,
+        outputs: job.outputs?.images
+    }
+}
+
+export async function sendImages(telegramChatId: number, prompt: string, images: string[], video = false) {
     try {
         const telegramApi = new TelegramApi(process.env.TELEGRAM_BOT_API_TOKEN || "")
         if (video) {
-            await telegramApi.sendAnimation(userId, images[0], prompt)
+            await telegramApi.sendAnimation(telegramChatId, images[0], prompt)
         } else {
-            await telegramApi.sendMediaGroup(userId, images, prompt)
+            await telegramApi.sendMediaGroup(telegramChatId, images, prompt)
         }
     } catch (error) {
         console.log(error)
+    }
+}
+
+async function _response(userId: ObjectId, cost: number, prompt: string, images: string[], video: boolean = false) {
+    const updatedUser = await consumeGems(userId, cost)
+    if (updatedUser) {
+        await sendImages(updatedUser.user_id, prompt, images)
     }
 
     images = images.map((image) => {

@@ -22,7 +22,7 @@ export default async function RootLayout({
     lang: string,
   }
 }>) {
-  const account: Account | null = await getUser()
+  const account: Account | null = await getUser(true)
   return (
     <html lang={params.lang}>
       <body className={`${inter.className} dark:bg-black`}>

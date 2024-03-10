@@ -5,7 +5,7 @@ import { getUser } from "@/lib/actions";
 import { Account } from "@/types/types";
 
 export default async function Page() {
-  const account: Account | null =  await getUser()
+  const account: Account | null =  await getUser(true)
   return (
     <TelegramProvider>
       <AccountProvider initialAccount={account}>

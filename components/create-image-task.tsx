@@ -1,6 +1,6 @@
 'use client'
 
-import { inference, txt2img } from "@/lib/actions";
+import { inference, retrieveJobResult, txt2img } from "@/lib/actions";
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useAccount } from "./account-provider";
 
@@ -71,28 +71,46 @@ export function CreateImageTaskProvider({ children }: Readonly<{
   const [thumbnail, setThumbnail] = useState<string | ArrayBuffer | null>(null);
 
   const { account, setAccount } = useAccount()
+  const [jobId, setJobId] = useState<string | null>(null);
 
   // Simulate progress increase and task state using useEffect for demo purposes
   useEffect(() => {
-    if (account.processing_job_id && !account.last_outputs) {
-      setTaskState("processing")
-    }
-    // const progressInterval = setInterval(() => {
-    //   setProgress((prevProgress) => (prevProgress < 100 ? prevProgress + 10 : 100));
-    // }, 1000);
+    let timeoutId: NodeJS.Timeout;
 
-    // Simulate task processing and completion
-    // setTimeout(() => {
-    //   setTaskState("processing");
-    //   setTimeout(() => {
-    //     setTaskState("done");
-    //   }, 3000);
-    // }, 2000);
-
-    return () => {
-      // clearInterval(progressInterval);
+    const exponentialCallback = (callback: () => void, delay: number, exponent: number, retries: number) => {
+      console.log(`exponentialCallback: ${delay} ${taskState}`)
+      if (taskState == "processing") {
+        timeoutId = setTimeout(() => {
+          callback();
+          if (retries >= 10) {
+            return
+          }
+          exponentialCallback(callback, Math.min(delay * exponent, 1000 * 10), exponent, retries + 1); // Recursive call with increased delay
+        }, delay);
+      }
     };
-  }, [account]);
+
+    const callbackFunction = async () => {
+      const result = await retrieveJobResult(jobId || "")
+      if (result.status != "processing") {
+        setTaskState("done")
+        setJobId(null)
+        setImageResults(result.outputs || [])
+      }
+    };
+
+    if (jobId) {
+      console.log(`jobId: ${jobId}`)
+      exponentialCallback(callbackFunction, 2000, 2, 0); // Initial delay of 1000ms, exponential factor of 2
+    }
+
+    // Cleanup function to clear the timeout when component is unmounted
+    return () => {
+      console.log(`clearTimeout: ${timeoutId}`)
+      clearTimeout(timeoutId);
+    };
+
+  }, [jobId]);
 
   // Function to upload the image
   const createImages = async (prompt: string) => {
@@ -110,9 +128,8 @@ export function CreateImageTaskProvider({ children }: Readonly<{
       // trim data url prefix
       const encodedImage = (thumbnail as string)?.replace(/^data:.+?,/, "")
       if (outputType != "video") {
-        const result = await inference(prompt, encodedImage, imageRefType)
-        setAccount(result.user)
-        setImageResults([...result.images]);
+        const jobId = await inference(prompt, encodedImage, imageRefType)
+        setJobId(jobId)
       } else {
         const result = await txt2img(prompt, encodedImage, imageRefType, outputType == "video")
         setAccount(result.user)
@@ -121,9 +138,6 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     } catch (error) {
       // TODO: handle errors
       console.log(error)
-    } finally {
-      setProgress(100);
-      setTaskState("done");
     }
   };
 

@@ -1,8 +1,9 @@
 'use server'
 
-import { ObjectId } from "mongodb";
+import { MatchKeysAndValues, ObjectId } from "mongodb";
 import { TelegramUser } from "@/types/telegram";
-import { Account } from "@/types/types";
+import { Account, Job } from "@/types/types";
+import { CogPredictionResult } from "@/app/webhook/prediction/route";
 
 const DAILY_GEMS = 10
 const JOB_TIMEOUT_IN_SECONDS = 60 * 2
@@ -13,7 +14,7 @@ const myDatabase = async () => {
     return client.db("image_creator")
 }
 
-type DbCollection = "telegram_users"
+type DbCollection = "telegram_users" | "jobs"
 type DbFields = {}
 
 const getCollection = async <T extends DbFields>(collection: DbCollection) => {
@@ -21,9 +22,8 @@ const getCollection = async <T extends DbFields>(collection: DbCollection) => {
     return db.collection<T>(collection)
 }
 
-export const getTelegramUser = async (userId: number) => {
+export const getTelegramUser = async (userId: ObjectId) => {
     const usersCollection = await getCollection<Account>("telegram_users")
-    const today = new Date()
     return await usersCollection.findOne(
         { _id: userId },
     )
@@ -35,7 +35,8 @@ export const upsertTelegramUser = async (user: TelegramUser) => {
 
     // Update the user's document and check if it has been newly inserted
     const result = await usersCollection.findOneAndUpdate(
-        { _id: user.id },
+        // TODO: create index for user id
+        { user_id: user.id },
         {
             $setOnInsert: {    // Set on insert if the user document doesn't exist
                 first_seen: today,
@@ -54,52 +55,112 @@ export const upsertTelegramUser = async (user: TelegramUser) => {
     return result
 }
 
-export async function acquireJobLock(userId: number, jobId: string, prompt?: string, refImage?: string): Promise<boolean> {
+function isJobTimeout(startTime: Date) {
+    const currentTime = new Date();
+    const lockDurationSeconds = Math.abs(currentTime.getTime() - startTime.getTime()) / 1000;
+    return lockDurationSeconds > JOB_TIMEOUT_IN_SECONDS
+}
+
+export async function acquireJobLock(userId: ObjectId): Promise<ObjectId | false> {
     const user = await getTelegramUser(userId)
     // Check if the job is already locked
-    if (user && user.processing_job_id && !user.last_outputs) {
-        const currentTime = new Date();
-        const lockDurationSeconds = Math.abs(currentTime.getTime() - user.job_start_time!.getTime()) / 1000;
-        if (lockDurationSeconds < JOB_TIMEOUT_IN_SECONDS) {
-            return false; // Job is already locked
+    if (user && user.processing_job) {
+        const job = await getJobById(user.processing_job)
+        if (job && !isJobTimeout(job.start_time)) {
+            return false
         }
+        
     }
 
     const usersCollection = await getCollection<Account>("telegram_users")
 
     // If not locked, acquire the lock
+    const newJobId = new ObjectId();
     await usersCollection.updateOne(
         {
-            _id: userId,
+            _id: user?._id,
         },
         {
             $set: {
-                processing_job_id: jobId,
-                processing_prompt: prompt,
-                processing_ref_image: refImage,
-                last_outputs: undefined,
-                job_start_time: new Date(),
+                processing_job: newJobId,
+            },
+            $push: {
+                // TODO: create boundary for jobs
+                jobs: newJobId,
             }
         });
-    return true; // Lock acquired
+    return newJobId; // Lock acquired
 }
 
-export async function releaseJobLock(userId: number): Promise<void> {
-    // Release the job lock
+export async function getJobById(jobId: ObjectId): Promise<Job | null> {
+    const jobsCollection = await getCollection<Job>('jobs');
+    return jobsCollection.findOne({ _id: jobId });
+  }  
+
+export async function releaseJobLock(userId: ObjectId, jobId?: ObjectId) {
+    if (jobId) {
+        const job = await getJobById(jobId)
+        if (job) {
+            if (isJobTimeout(job.start_time)) {
+                return await _releaseJobLock(userId)
+            } else {
+                return null
+            }
+        }
+    }
+    return await _releaseJobLock(userId)
+}
+
+async function _releaseJobLock(userId: ObjectId) {
     const usersCollection = await getCollection<Account>("telegram_users")
-    await usersCollection.updateOne(
+    const updatedUser = await usersCollection.findOneAndUpdate(
         {
             _id: userId,
         },
         {
             $set: {
-                processing_job_id: undefined,
+                processing_job: undefined,
             }
-        });
+        },
+        {
+            returnDocument: "after",
+        }
+    );
+    return updatedUser
 }
 
+export async function createJob(job: Job) {
+    const collection = await getCollection<Job>("jobs")
+    const result = await collection.insertOne(job)
+    return result.insertedId
+}
 
-export const issueDailyGems = async (userId: number) => {
+// Update
+export async function updateJobStatus(data: CogPredictionResult) {
+    const collection = await getCollection<Job>('jobs');
+    const updatedJob = await collection.findOneAndUpdate(
+      { _id: new ObjectId(data.id) },
+      {
+        $set: { 
+            status: data.status,
+            outputs: {
+                images: data.output
+            }
+        }
+      },
+      {
+            returnDocument: "after",
+        }
+    )
+
+    if (updatedJob) {
+        await consumeGems(updatedJob.user, updatedJob.cost, true)
+    } 
+}
+  
+  
+
+export const issueDailyGems = async (userId: ObjectId) => {
     const usersCollection = await getCollection<Account>("telegram_users")
     const today = new Date()
 
@@ -131,9 +192,15 @@ export const issueDailyGems = async (userId: number) => {
     return result
 }
 
-export const consumeGems = async (userId: number, gems: number, outputs: string[]) => {
+export const consumeGems = async (userId: ObjectId, gems: number, clearProcessingJob = false) => {
     const usersCollection = await getCollection<Account>("telegram_users")
     const today = new Date()
+
+    let extraUpdates: Record<string, any> = {}
+
+    if (clearProcessingJob) {
+        extraUpdates.processing_job = null
+    }
 
     const result = await usersCollection.findOneAndUpdate(
         {
@@ -142,7 +209,7 @@ export const consumeGems = async (userId: number, gems: number, outputs: string[
         {
             $set: {
                 last_active: today,
-                last_outputs: outputs,
+                ...extraUpdates,
             },
             $inc: {    // Increment the gems count if the user document exists
                 gems: -gems

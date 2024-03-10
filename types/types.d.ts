@@ -1,13 +1,32 @@
+import { ObjectId } from "mongodb";
+
 export interface PageProps {
   lang: string,
 }
 
 type Account = {
-  _id: number
+  _id: ObjectId
+  user_id: number,
   gems: number
-  processing_job_id?: string
-  processing_prompt?: string
-  processing_ref_image?: string
-  last_outputs?: string[]
-  job_start_time?: Date
+  processing_job?: ObjectId
+  jobs: ObjectId[]
 };
+
+type JobStatus = "start" | "processing" | "succeeded" | "failed"
+
+type Job = {
+  _id: ObjectId
+  user: ObjectId
+  cost: number
+  start_time: Date
+  status: JobStatus
+  metadata: {
+    image?: {
+      prompt?: string
+      ref_image?: string
+    }
+  }
+  outputs?: {
+    images:string[] | null
+  }
+}

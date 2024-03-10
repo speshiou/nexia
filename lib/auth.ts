@@ -39,25 +39,24 @@ export const config = {
         const authData = querystring.parse(url.search.substring(1))
         if (authData) {
           telegramUser = verifyAuthData(process.env.TELEGRAM_BOT_API_TOKEN || "", authData)
-          await upsertTelegramUser(telegramUser)
-        }
-
-        if (telegramUser) {
-          // Any object returned will be saved in `user` property of the JWT
-          // The user property should match the format of the OAuth user data
-          const user = {
-            id: telegramUser.id.toString(),
-            email: telegramUser.id.toString(),
-            name: [telegramUser.first_name, telegramUser.last_name || ""].join(" ").trim(),
-            // image: telegramUser.photo_url,
+          const account = await upsertTelegramUser(telegramUser)
+          if (account) {
+            // Any object returned will be saved in `user` property of the JWT
+            // The user property should match the format of the OAuth user data
+            const user = {
+              id: account._id.toString(),
+              email: account._id.toString(),
+              name: [telegramUser.first_name, telegramUser.last_name || ""].join(" ").trim(),
+              // image: telegramUser.photo_url,
+            }
+            return user
           }
-          return user
-        } else {
-          // If you return null then an error will be displayed advising the user to check their details.
-          return null
-
-          // You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter
         }
+
+        // If you return null then an error will be displayed advising the user to check their details.
+        return null
+
+        // You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter
       },
     }),
   ],
