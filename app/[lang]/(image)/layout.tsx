@@ -3,8 +3,7 @@ import { Inter } from "next/font/google";
 import "../../globals.css";
 import Header from "@/components/header";
 import { AccountProvider } from "@/components/account-provider";
-import { getUser } from "@/lib/actions";
-import { Account } from "@/types/types";
+import { getUserMeta } from "@/lib/actions";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,11 +21,11 @@ export default async function RootLayout({
     lang: string,
   }
 }>) {
-  const account: Account | null = await getUser(true)
+  const user = await getUserMeta()
   return (
     <html lang={params.lang}>
       <body className={`${inter.className} dark:bg-black`}>
-        <AccountProvider initialAccount={account}>
+        <AccountProvider initialData={user}>
           <Header />
           {children}
         </AccountProvider>

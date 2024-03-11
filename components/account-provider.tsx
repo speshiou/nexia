@@ -1,22 +1,19 @@
 'use client'
 
+import { UserMeta } from '@/types/types';
 import React, { createContext, FC, useContext, useState } from 'react';
-import { Account } from '@/types/types';
 
 type AccountContextType = {
-    account: Account;
-    setAccount: (account: Account) => void
+    account: UserMeta;
+    setAccount: (account: UserMeta) => void
 };
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 const AccountProvider: FC<React.PropsWithChildren & {
-    "initialAccount": Account | null,
-}> = ({ children, initialAccount }) => {
-    const [account, setAccount] = useState<Account>(initialAccount || {
-        _id: 0,
-        gems: 0,
-    });
+    initialData: UserMeta,
+}> = ({ children, initialData }) => {
+    const [account, setAccount] = useState(initialData)
 
     const contextValue: AccountContextType = { account, setAccount };
 

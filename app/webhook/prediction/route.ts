@@ -1,6 +1,5 @@
 import { sendImages } from "@/lib/actions"
 import { getJobById, getTelegramUser, updateJobStatus } from "@/lib/data"
-import { JobStatus } from "@/types/types"
 import { ObjectId } from "mongodb"
 
 export const dynamic = 'force-dynamic' // defaults to auto
@@ -16,11 +15,11 @@ export interface CogPredictionResult {
 
 export async function POST(request: Request) {
     const result: CogPredictionResult = await request.json()
-    console.log(result);
+    console.log(`webhook prediction: ${result.status}`)
     const job = await getJobById(new ObjectId(result.id))
     if (job) {
         await updateJobStatus(result)
-        
+
         if (result.status == "succeeded") {
             let images = result.output || []
             // images = images.map((image) => {

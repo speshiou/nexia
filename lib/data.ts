@@ -1,8 +1,7 @@
 'use server'
 
-import { MatchKeysAndValues, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { TelegramUser } from "@/types/telegram";
-import { Account, Job } from "@/types/types";
 import { CogPredictionResult } from "@/app/webhook/prediction/route";
 
 const DAILY_GEMS = 10
@@ -61,38 +60,20 @@ function isJobTimeout(startTime: Date) {
     return lockDurationSeconds > JOB_TIMEOUT_IN_SECONDS
 }
 
-export async function acquireJobLock(userId: ObjectId): Promise<ObjectId | false> {
+export async function acquireJobLock(userId: ObjectId) {
     const user = await getTelegramUser(userId)
     // Check if the job is already locked
     if (user && user.processing_job) {
         const job = await getJobById(user.processing_job)
         if (job && !isJobTimeout(job.start_time)) {
             return false
-        }
-        
+        }   
     }
-
-    const usersCollection = await getCollection<Account>("telegram_users")
-
-    // If not locked, acquire the lock
-    const newJobId = new ObjectId();
-    await usersCollection.updateOne(
-        {
-            _id: user?._id,
-        },
-        {
-            $set: {
-                processing_job: newJobId,
-            },
-            $push: {
-                // TODO: create boundary for jobs
-                jobs: newJobId,
-            }
-        });
-    return newJobId; // Lock acquired
+    // Lock acquired
+    return true
 }
 
-export async function getJobById(jobId: ObjectId): Promise<Job | null> {
+export async function getJobById(jobId: ObjectId) {
     const jobsCollection = await getCollection<Job>('jobs');
     return jobsCollection.findOne({ _id: jobId });
   }  
@@ -115,7 +96,7 @@ async function _releaseJobLock(userId: ObjectId) {
     const usersCollection = await getCollection<Account>("telegram_users")
     const updatedUser = await usersCollection.findOneAndUpdate(
         {
-            _id: userId,
+            _id: userId
         },
         {
             $set: {
@@ -132,7 +113,24 @@ async function _releaseJobLock(userId: ObjectId) {
 export async function createJob(job: Job) {
     const collection = await getCollection<Job>("jobs")
     const result = await collection.insertOne(job)
-    return result.insertedId
+    const newJobId = result.insertedId
+
+    const usersCollection = await getCollection<Account>("telegram_users")
+
+    await usersCollection.updateOne(
+        {
+            _id: job.user,
+        },
+        {
+            $set: {
+                processing_job: newJobId,
+            },
+            $push: {
+                // TODO: create boundary for jobs
+                jobs: newJobId,
+            }
+        });
+    return newJobId
 }
 
 // Update

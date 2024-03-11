@@ -6,9 +6,8 @@ import { acquireJobLock, consumeGems, createJob, getJobById, getTelegramUser, is
 import { upload } from "./gcs"
 import TelegramApi from "./telegram/api"
 import { base64PngPrefix, dateStamp } from "./utils"
-import { Job, JobStatus } from "@/types/types"
-import { CogPredictionResult } from "@/app/webhook/prediction/route"
 import { ObjectId } from "mongodb"
+import { UserMeta } from "@/types/types"
 
 type DiffusersInputs = {
     prompt: string
@@ -20,7 +19,7 @@ type DiffusersInputs = {
     faceid_image?: string
 }
 
-export async function getUser(maybeIssueDailyGems: boolean = false) {
+async function getUser(maybeIssueDailyGems: boolean = false) {
     const session = await auth()
     if (session && session.user && session.user.id) {
         const userId = new ObjectId(session.user.id)
@@ -36,6 +35,19 @@ export async function getUser(maybeIssueDailyGems: boolean = false) {
         // verify email for the standard OAuth providers
     }
     return null
+}
+
+export async function getUserMeta() {
+    const user = await getUser(true)
+    if (!user) {
+        return {
+            gems: 0,
+        } satisfies UserMeta
+    }
+    return {
+        gems: user.gems,
+        processing_job: user.processing_job?.toString(),
+    } satisfies UserMeta
 }
 
 export async function txt2img(prompt: string, refImage?: string, imageRefType?: "full" | "face", video: boolean = false) {
@@ -186,15 +198,13 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
         }
     }
 
-    const newJobId = await acquireJobLock(user._id)
-    if (!newJobId) {
+    if (!await acquireJobLock(user._id)) {
         throw new Error("locked")
     }
 
     const cost = 1
 
     const newJob: Job = {
-        _id: newJobId,
         user: user._id,
         cost: cost,
         start_time: new Date(),
