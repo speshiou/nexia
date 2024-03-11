@@ -1,5 +1,5 @@
 import { sendImages } from "@/lib/actions"
-import { getJobById, getTelegramUser, updateJobStatus } from "@/lib/data"
+import { consumeGems, getJobById, getTelegramUser, updateJobStatus } from "@/lib/data"
 import { ObjectId } from "mongodb"
 
 export const dynamic = 'force-dynamic' // defaults to auto
@@ -18,9 +18,9 @@ export async function POST(request: Request) {
     console.log(`webhook prediction: ${result.status}`)
     const job = await getJobById(new ObjectId(result.id))
     if (job) {
-        await updateJobStatus(result)
+        const updatedJob = await updateJobStatus(result)
 
-        if (result.status == "succeeded") {
+        if (updatedJob && result.status == "succeeded") {
             let images = result.output || []
             // images = images.map((image) => {
             //     return image.replace(new RegExp(`^${base64PngPrefix}\s*`), "")
@@ -29,6 +29,8 @@ export async function POST(request: Request) {
             if (telegramUser) {
                 await sendImages(telegramUser.user_id, job.metadata.image?.prompt || "", images)
             }
+
+            await consumeGems(updatedJob.user, updatedJob.cost, true)
         }
     }    
     return Response.json({ "status": "OK" })

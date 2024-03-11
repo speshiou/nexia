@@ -151,9 +151,7 @@ export async function updateJobStatus(data: CogPredictionResult) {
         }
     )
 
-    if (updatedJob) {
-        await consumeGems(updatedJob.user, updatedJob.cost, true)
-    } 
+    return updatedJob
 }
   
   
