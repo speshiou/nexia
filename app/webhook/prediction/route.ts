@@ -18,9 +18,7 @@ export async function POST(request: Request) {
     console.log(`webhook prediction: ${result.status}`)
     const job = await getJobById(new ObjectId(result.id))
     if (job) {
-        const updatedJob = await updateJobStatus(result)
-
-        if (updatedJob && result.status == "succeeded") {
+        if (result.status == "succeeded") {
             let images = result.output || []
             // images = images.map((image) => {
             //     return image.replace(new RegExp(`^${base64PngPrefix}\s*`), "")
@@ -29,7 +27,9 @@ export async function POST(request: Request) {
             if (telegramUser) {
                 await sendImages(telegramUser.user_id, job.metadata.image?.prompt || "", images)
             }
-
+        }
+        const updatedJob = await updateJobStatus(result)
+        if (updatedJob && result.status == "succeeded") {
             await consumeGems(updatedJob.user, updatedJob.cost, true)
         }
     }    

@@ -21,7 +21,7 @@ export default async function RootLayout({
     lang: string,
   }
 }>) {
-  const user = await getUserMeta()
+  const user = await getUserMeta(true)
   return (
     <html lang={params.lang}>
       <body className={`${inter.className} dark:bg-black`}>

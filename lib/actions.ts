@@ -37,8 +37,8 @@ async function getUser(maybeIssueDailyGems: boolean = false) {
     return null
 }
 
-export async function getUserMeta() {
-    const user = await getUser(true)
+export async function getUserMeta(maybeIssueDailyGems: boolean = false) {
+    const user = await getUser(maybeIssueDailyGems)
     if (!user) {
         return {
             gems: 0,
@@ -243,7 +243,8 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
 
 export async function retrieveJobResult(jobId: string): Promise<{
     status: JobStatus,
-    outputs?: string[] | null
+    outputs?: string[] | null,
+    user?: UserMeta
 }> {
     const user = await getUser()
     if (!user) {
@@ -251,7 +252,6 @@ export async function retrieveJobResult(jobId: string): Promise<{
     }
 
     const job = await getJobById(new ObjectId(jobId))
-    console.log(job)
     if (!job) {
         await releaseJobLock(user._id)
         return {
@@ -267,7 +267,8 @@ export async function retrieveJobResult(jobId: string): Promise<{
     }
     return {
         status: job.status,
-        outputs: job.outputs?.images
+        outputs: job.outputs?.images,
+        user: await getUserMeta(),
     }
 }
 

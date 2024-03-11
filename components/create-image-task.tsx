@@ -65,13 +65,13 @@ export function CreateImageTaskProvider({ children }: Readonly<{
     // 'https://th.bing.com/th/id/OIG.uKrClGRzYxsEzyj_uBMi?w=270&h=270&c=6&r=0&o=5&dpr=2&pid=ImgGn',
   ]);
   const [outputType, setOutputType] = useState<OutputType>("image");
-  const [taskState, setTaskState] = useState<TaskState>("pending");
   const [imageRefType, setImageRefType] = useState<ImageRefType>("full");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [thumbnail, setThumbnail] = useState<string | ArrayBuffer | null>(null);
 
   const { account, setAccount } = useAccount()
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [taskState, setTaskState] = useState<TaskState>(account.processing_job ? "processing" : "pending");
+  const [jobId, setJobId] = useState<string | undefined>(account.processing_job);
 
   // Simulate progress increase and task state using useEffect for demo purposes
   useEffect(() => {
@@ -94,8 +94,11 @@ export function CreateImageTaskProvider({ children }: Readonly<{
       const result = await retrieveJobResult(jobId || "")
       if (result.status != "processing") {
         setTaskState("done")
-        setJobId(null)
+        setJobId(undefined)
         setImageResults(result.outputs || [])
+        if (result.user) {
+          setAccount(result.user)
+        }
       }
     };
 
@@ -129,7 +132,9 @@ export function CreateImageTaskProvider({ children }: Readonly<{
       const encodedImage = (thumbnail as string)?.replace(/^data:.+?,/, "")
       if (outputType != "video") {
         const jobId = await inference(prompt, encodedImage, imageRefType)
-        setJobId(jobId)
+        if (jobId) {
+          setJobId(jobId)
+        }
       } else {
         const result = await txt2img(prompt, encodedImage, imageRefType, outputType == "video")
         setAccount(result.user)
