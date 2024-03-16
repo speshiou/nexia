@@ -204,6 +204,10 @@ export async function inference(prompt: string, refImage?: string, imageRefType?
 
     const cost = 1
 
+    if (user.gems - cost < 0) {
+        throw new Error("Insufficient gems")
+    }
+
     const newJob: Job = {
         user: user._id,
         cost: cost,

@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 import { TelegramUser } from "@/types/telegram";
 import { CogPredictionResult } from "@/app/webhook/prediction/route";
 
-const DAILY_GEMS = 10
+const DAILY_GEMS = 20
 const JOB_TIMEOUT_IN_SECONDS = 60 * 2
 
 const myDatabase = async () => {
@@ -167,11 +167,12 @@ export const issueDailyGems = async (userId: ObjectId) => {
         },
         {
             $set: {
-                last_gem_issued_date: today.toDateString()
+                last_gem_issued_date: today.toDateString(),
+                gems: DAILY_GEMS,
             },
-            $inc: {    // Increment the gems count if the user document exists
-                gems: DAILY_GEMS
-            }
+            // $inc: {    // Increment the gems count if the user document exists
+            //     gems: DAILY_GEMS
+            // }
         },
         {
             returnDocument: "after",
