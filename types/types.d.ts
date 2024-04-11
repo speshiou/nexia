@@ -1,7 +1,7 @@
-import { ObjectId } from "mongodb";
+import { ObjectId } from 'mongodb'
 
 export interface PageProps {
-  lang: string,
+  lang: string
 }
 
 type UserMeta = {

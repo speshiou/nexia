@@ -1,31 +1,30 @@
-import { TelegramUser } from "@/types/telegram";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { verifyAuthData } from "./telegram/auth";
-import { upsertTelegramUser } from "./data";
-import NextAuth, { NextAuthConfig } from "next-auth";
-import querystring from 'node:querystring';
+import { TelegramUser } from '@/types/telegram'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import { verifyAuthData } from './telegram/auth'
+import { upsertTelegramUser } from './data'
+import NextAuth, { NextAuthConfig } from 'next-auth'
+import querystring from 'node:querystring'
 
-
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     user: {
-      id: string;
-      name: string;
-      image: string;
-      email: string;
-    };
+      id: string
+      name: string
+      image: string
+      email: string
+    }
   }
 }
 
 export const config = {
   theme: {
-    logo: "https://next-auth.js.org/img/logo/logo-sm.png",
+    logo: 'https://next-auth.js.org/img/logo/logo-sm.png',
   },
   providers: [
     CredentialsProvider({
-      id: "telegram-login",
+      id: 'telegram-login',
       // The name to display on the sign in form (e.g. "Sign in with...")
-      name: "Telegram",
+      name: 'Telegram',
       // `credentials` is used to generate a form on the sign in page.
       // You can specify which fields should be submitted, by adding keys to the `credentials` object.
       // e.g. domain, username, password, 2FA token, etc.
@@ -38,7 +37,10 @@ export const config = {
         // trim the beginning question mark before parsing the query
         const authData = querystring.parse(url.search.substring(1))
         if (authData) {
-          telegramUser = verifyAuthData(process.env.TELEGRAM_BOT_API_TOKEN || "", authData)
+          telegramUser = verifyAuthData(
+            process.env.TELEGRAM_BOT_API_TOKEN || '',
+            authData,
+          )
           const account = await upsertTelegramUser(telegramUser)
           if (account) {
             // Any object returned will be saved in `user` property of the JWT
@@ -46,7 +48,9 @@ export const config = {
             const user = {
               id: account._id.toString(),
               email: account._id.toString(),
-              name: [telegramUser.first_name, telegramUser.last_name || ""].join(" ").trim(),
+              name: [telegramUser.first_name, telegramUser.last_name || '']
+                .join(' ')
+                .trim(),
               // image: telegramUser.photo_url,
             }
             return user
@@ -64,7 +68,7 @@ export const config = {
     async session({ session }) {
       // assign id field for telegram provider
       session.user.id = session.user.email
-      return session;
+      return session
     },
   },
 } satisfies NextAuthConfig

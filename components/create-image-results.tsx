@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from "react";
-import { useCreateImageTask } from "./create-image-task";
+import React, { useState } from 'react'
+import { useCreateImageTask } from './create-image-task'
 
 const CreateImageResults: React.FC = () => {
   const { imageResults, taskState } = useCreateImageTask()
@@ -12,7 +12,7 @@ const CreateImageResults: React.FC = () => {
         return <img className="w-1/2 p-1 rounded-md" key={image} src={image} />
       })}
     </div>
-  );
-};
+  )
+}
 
-export default CreateImageResults;
+export default CreateImageResults

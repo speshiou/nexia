@@ -1,15 +1,15 @@
 interface TelegramWebApp {
   initData: string
-  MainButton?: MainButton,
+  MainButton?: MainButton
   ready: () => void
   expand: () => void
   onEvent: (eventType: EventType, eventHandler: EventHandler) => void
   offEvent: (eventType: EventType, eventHandler: EventHandler) => void
 }
 
-export type EventType = "viewportChanged"
+export type EventType = 'viewportChanged'
 
-export type EventHandler<T> = (props: T) => void;
+export type EventHandler<T> = (props: T) => void
 
 export interface ViewportChangedProps {
   isStateStable: boolean
@@ -24,26 +24,26 @@ interface MainButton {
   hideProgress: () => void
   onClick: (callback: () => void) => void
   offClick: (callback: () => void) => void
-  setParams: (params: MainButtonProps) => void 
+  setParams: (params: MainButtonProps) => void
 }
 
 type MainButtonProps = {
-  text?: string;
-  color?: string;
-  text_color?: string;
-  is_active?: boolean;
-  is_visible?: boolean;
+  text?: string
+  color?: string
+  text_color?: string
+  is_active?: boolean
+  is_visible?: boolean
 }
 
 type TelegramUser = {
-  id: number;
-  first_name?: string;
-  last_name?: string;
-  username?: string;
+  id: number
+  first_name?: string
+  last_name?: string
+  username?: string
 }
 
 type TelegramAuthUser = TelegramUser & {
-  allows_write_to_pm: boolean;
+  allows_write_to_pm: boolean
 }
 
 export interface WebhookUpdate {
@@ -53,13 +53,12 @@ export interface WebhookUpdate {
     from: TelegramUser
     chat: {
       id: number
-      type: "private"
+      type: 'private'
     }
     date: number
     text?: string
   }
 }
-
 
 declare global {
   interface Window {
@@ -69,9 +68,4 @@ declare global {
   }
 }
 
-export { 
-  TelegramWebApp,
-  TelegramAuthUser,
-  TelegramUser,
-  MainButton,
-}
+export { TelegramWebApp, TelegramAuthUser, TelegramUser, MainButton }

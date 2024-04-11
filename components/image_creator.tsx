@@ -1,7 +1,7 @@
-import CreateImageTextInput from "@/components/create-image-input";
-import { CreateImageTaskProvider } from "@/components/create-image-task";
-import CreateImageRefDropArea from "@/components/create-image-drop-area";
-import CreateImageContent from "@/components/create-image-content";
+import CreateImageTextInput from '@/components/create-image-input'
+import { CreateImageTaskProvider } from '@/components/create-image-task'
+import CreateImageRefDropArea from '@/components/create-image-drop-area'
+import CreateImageContent from '@/components/create-image-content'
 
 export default function ImageCreator() {
   return (
@@ -13,5 +13,5 @@ export default function ImageCreator() {
         </CreateImageRefDropArea>
       </CreateImageTaskProvider>
     </main>
-  );
+  )
 }

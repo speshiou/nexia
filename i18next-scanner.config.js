@@ -1,20 +1,17 @@
-const fs = require('fs');
-const path = require('path');
-const chalk = require('chalk');
+const fs = require('fs')
+const path = require('path')
+const chalk = require('chalk')
 // Naming rules of language codes, see https://github.com/i18next/i18next/issues/1015
-const supportedLocales = require('./locales.json');
-const supportedLangCodes = Object.keys(supportedLocales);
-const srcDir = "dictionaries"
-
+const supportedLocales = require('./locales.json')
+const supportedLangCodes = Object.keys(supportedLocales)
+const srcDir = 'dictionaries'
 
 if (!fs.existsSync(srcDir)) {
-  fs.mkdirSync(srcDir, { recursive: true });
-  console.log('Directory created:', srcDir);
+  fs.mkdirSync(srcDir, { recursive: true })
+  console.log('Directory created:', srcDir)
 }
 
-const doNotTranslate = [
-  "{{val, number}}",
-];
+const doNotTranslate = ['{{val, number}}']
 
 module.exports = {
   input: [
@@ -27,7 +24,7 @@ module.exports = {
     debug: true,
     func: {
       list: ['i18next.t', 'i18n.t', '_', 't'],
-      extensions: ['.js', '.jsx', '.ts', 'tsx']
+      extensions: ['.js', '.jsx', '.ts', 'tsx'],
     },
     trans: {
       component: 'Trans',
@@ -35,7 +32,7 @@ module.exports = {
       defaultsKey: 'defaults',
       extensions: ['.js', '.jsx'],
       fallbackKey: function (ns, value) {
-        return value;
+        return value
       },
 
       // https://react.i18next.com/latest/trans-component#usage-with-simple-html-elements-like-less-than-br-greater-than-and-others-v10.4.0
@@ -46,72 +43,81 @@ module.exports = {
       acorn: {
         ecmaVersion: 2020,
         sourceType: 'module', // defaults to 'module'
-      }
+      },
     },
     lngs: supportedLangCodes,
-    ns: [
-      'resource',
-    ],
+    ns: ['resource'],
     defaultLng: 'en',
     defaultNs: 'resource',
     defaultValue: function (lng, ns, key) {
       if (lng === 'en' || doNotTranslate.indexOf(key) == 0) {
         // Return key as the default value for English language
-        return key;
+        return key
       }
 
       // Return the string '__NOT_TRANSLATED__' for other languages
-      return '__NOT_TRANSLATED__';
+      return '__NOT_TRANSLATED__'
     },
     resource: {
       loadPath: path.join(srcDir, '{{lng}}/{{ns}}.json'),
       savePath: path.join(srcDir, '{{lng}}/{{ns}}.json'),
       jsonIndent: 2,
-      lineEnding: '\n'
+      lineEnding: '\n',
     },
     nsSeparator: false, // namespace separator
     keySeparator: false, // key separator
     interpolation: {
       prefix: '{{',
-      suffix: '}}'
+      suffix: '}}',
     },
     metadata: {},
     allowDynamicKeys: false,
   },
   transform: function customTransform(file, enc, done) {
-    "use strict";
-    const parser = this.parser;
-    const content = fs.readFileSync(file.path, enc);
-    let count = 0;
+    'use strict'
+    const parser = this.parser
+    const content = fs.readFileSync(file.path, enc)
+    let count = 0
 
-    parser.parseFuncFromString(content, { list: ['i18next._', 'i18next.__', '_', 't'] }, (key, options) => {
-      parser.set(key, Object.assign({}, options, {
-        nsSeparator: false,
-        keySeparator: false
-      }));
-      ++count;
-    });
+    parser.parseFuncFromString(
+      content,
+      { list: ['i18next._', 'i18next.__', '_', 't'] },
+      (key, options) => {
+        parser.set(
+          key,
+          Object.assign({}, options, {
+            nsSeparator: false,
+            keySeparator: false,
+          }),
+        )
+        ++count
+      },
+    )
 
     if (count > 0) {
-      console.log(`i18next-scanner: count=${chalk.cyan(count)}, file=${chalk.yellow(JSON.stringify(file.relative))}`);
+      console.log(
+        `i18next-scanner: count=${chalk.cyan(count)}, file=${chalk.yellow(JSON.stringify(file.relative))}`,
+      )
     }
 
-    done();
-  }
-};
+    done()
+  },
+}
 
 // Generate the dynamic content
-const dictContent = supportedLangCodes.reduce((accumulator, langCode) => {
-  return `${accumulator}  "${langCode}": () => import('./${langCode}/resource.json').then((module) => module.default),\n`;
-}, '').trim();
-const typeDefinition = "type Dictionary = () => Promise<{ [key: string]: string }>;"
-const finalContent = `${typeDefinition}\n\nexport const dictionaries: { [key: string]: Dictionary } = {\n  ${dictContent}\n}`;
+const dictContent = supportedLangCodes
+  .reduce((accumulator, langCode) => {
+    return `${accumulator}  "${langCode}": () => import('./${langCode}/resource.json').then((module) => module.default),\n`
+  }, '')
+  .trim()
+const typeDefinition =
+  'type Dictionary = () => Promise<{ [key: string]: string }>;'
+const finalContent = `${typeDefinition}\n\nexport const dictionaries: { [key: string]: Dictionary } = {\n  ${dictContent}\n}`
 
 // Define the output file path
-const outputFile = path.join(srcDir, 'resources.ts');
+const outputFile = path.join(srcDir, 'resources.ts')
 
 // Write the content to the output file
-fs.writeFileSync(outputFile, finalContent);
+fs.writeFileSync(outputFile, finalContent)
 
-console.log(`JSON file generated successfully: ${outputFile}`);
-
+console.log(`JSON file generated successfully: ${outputFile}`)
