@@ -1,16 +1,14 @@
+import clsx from 'clsx'
 import { Url } from 'next/dist/shared/lib/router/router'
 import Link from 'next/link'
-
-export const SELECTION_MODE_CHECK = 'check'
-export const SELECTION_MODE_NONE = 'none'
 
 export default function ListItem({
   title,
   subtitle,
   //   badge,
   to,
-  //   selectionMode = SELECTION_MODE_NONE,
-  //   selected = false,
+  selectionMode,
+  selected = false,
   leading,
   trailing,
   //   className,
@@ -22,14 +20,27 @@ export default function ListItem({
   leading?: React.ReactNode
   trailing?: React.ReactNode | string
   to?: Url
+  selectionMode?: 'check' | 'none'
+  selected?: boolean
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void
 }) {
-  //   const checkIcon = selected ? (
-  //     <i
-  //       className="bi bi-check-lg"
-  //       style={{ color: `var(--tg-theme-button-color)` }}
-  //     ></i>
-  //   ) : null
+  const checkIcon = selected ? (
+    <svg
+      style={{ color: `var(--tg-theme-button-color)` }}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="size-6"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="m4.5 12.75 6 6 9-13.5"
+      />
+    </svg>
+  ) : null
 
   //   const leadingWrap = leading ? <div className="me-3">{leading}</div> : null
   const body = (
@@ -49,15 +60,15 @@ export default function ListItem({
           </span>
         </>
       )}
-      {/* {badge && <span className="badge bg-primary rounded-pill">{badge}</span>}
-      {selectionMode == SELECTION_MODE_CHECK && checkIcon} */}
+      {/* {badge && <span className="badge bg-primary rounded-pill">{badge}</span>} */}
+      {selectionMode == 'check' && checkIcon}
       {/* {to && !to.startsWith('http') && !hideNavIndicator && (
         <i className="bi bi-chevron-right text-secondary"></i>
       )} */}
     </>
   )
 
-  let listItemClasses = 'flex py-2 px-4'
+  let listItemClasses = 'flex py-2 px-4 items-center'
   //   if (className) {
   //     listItemClasses += ` ${className}`
   //   }
@@ -67,7 +78,10 @@ export default function ListItem({
       {body}
     </Link>
   ) : (
-    <div className={listItemClasses} onClick={onClick}>
+    <div
+      className={clsx(listItemClasses, { 'cursor-pointer': onClick })}
+      onClick={onClick}
+    >
       {body}
     </div>
   )

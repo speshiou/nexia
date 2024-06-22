@@ -2,6 +2,7 @@ interface TelegramWebApp {
   initData: string
   MainButton?: MainButton
   BackButton?: BackButton
+  close: () => void
   ready: () => void
   expand: () => void
   onEvent: (eventType: EventType, eventHandler: EventHandler) => void

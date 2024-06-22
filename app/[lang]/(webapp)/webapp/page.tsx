@@ -28,10 +28,12 @@ export default function Page() {
       <div className={clsx({ 'animate-pulse': isPending })}>
         <ListGroup>
           <ListItem
+            to={`${pathname}/models`}
             title="AI Model"
             trailing={data?.current_model || <LoadingSkeleton />}
           />
           <ListItem
+            to={`${pathname}/roles`}
             title="Role"
             trailing={data?.current_chat_mode || <LoadingSkeleton />}
           />
@@ -41,10 +43,10 @@ export default function Page() {
             title="Remaining tokens"
             trailing={data?.used_tokens.toLocaleString() || <LoadingSkeleton />}
           />
-          <ListItem title="Purchase more tokens" />
+          <ListItem to={`${pathname}/purchase`} title="Purchase more tokens" />
         </ListGroup>
         <ListGroup>
-          <ListItem title="UI Language" />
+          <ListItem to={`${pathname}/lang`} title="UI Language" />
           <ListItem to={`${pathname}/bots`} title="Bots created by Nexia" />
           <ListItem to="https://t.me/nexia_support" title="Feedback" />
         </ListGroup>

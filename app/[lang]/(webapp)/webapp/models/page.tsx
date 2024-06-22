@@ -1,0 +1,85 @@
+'use client'
+
+import { useTelegram } from '@/components/webapp/telegram-provider'
+import LoadingSkeleton from '@/components/widget/LoadingSkeleton'
+import ListGroup from '@/components/widget/list_group'
+import ListItem from '@/components/widget/list_item'
+import Scaffold from '@/components/widget/scaffold'
+import { getSettings } from '@/lib/actions'
+import { models } from '@/lib/models'
+import { useQuery } from '@tanstack/react-query'
+import clsx from 'clsx'
+import { useRouter, useSearchParams } from 'next/navigation'
+
+export default function Page() {
+  const { initialized, webApp } = useTelegram()
+  const router = useRouter()
+  const { isPending, error, data } = useQuery({
+    queryKey: ['query_settings', initialized],
+    queryFn: () => {
+      const app = webApp
+      if (!app) return null
+      return getSettings(app.initData).then((result) => result)
+    },
+  })
+
+  const searchParams = useSearchParams()
+  const startedForResult = searchParams.get('start_for_result')
+
+  function handleSelection(e: React.MouseEvent, option: string) {
+    e.stopPropagation()
+    e.preventDefault()
+
+    // setModel(option, startedForResult)
+
+    if (startedForResult) {
+      webApp?.close()
+    } else {
+      router.back()
+    }
+  }
+
+  return (
+    <Scaffold title="AI Model" root={true}>
+      <div className={clsx({ 'animate-pulse': isPending })}>
+        <ListGroup>
+          {Object.values(models).map((model) => {
+            return (
+              <ListItem
+                key={model.id}
+                title={model.title}
+                subtitle={model.caption}
+                selectionMode="check"
+                selected={data?.current_model == model.id}
+                onClick={(e) => handleSelection(e, model.id)}
+              />
+            )
+          })}
+        </ListGroup>
+        <h2 className="font-bold my-4">Token Consumption</h2>
+        <table className="w-full border-collapse border border-slate-500">
+          <thead>
+            <tr>
+              <th className="border border-slate-600 px-4 py-2">Model</th>
+              <th className="border border-slate-600 px-4 py-2">Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-slate-700 px-4 py-2">GPT 3.5</td>
+              <td className="border border-slate-700 px-4 py-2">1x</td>
+            </tr>
+            <tr>
+              <td className="border border-slate-700 px-4 py-2">GPT 4</td>
+              <td className="border border-slate-700 px-4 py-2">10x</td>
+            </tr>
+            <tr>
+              <td className="border border-slate-700 px-4 py-2">Gemini</td>
+              <td className="border border-slate-700 px-4 py-2">3x</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </Scaffold>
+  )
+}
