@@ -11,14 +11,16 @@ export default function ListItem({
   to,
   //   selectionMode = SELECTION_MODE_NONE,
   //   selected = false,
-  //   leading,
-  //   trailing,
+  leading,
+  trailing,
   //   className,
   onClick,
   //   hideNavIndicator = false,
 }: {
-  title: string
+  title: string | React.ReactNode
   subtitle?: string
+  leading?: React.ReactNode
+  trailing?: React.ReactNode | string
   to?: Url
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void
 }) {
@@ -33,13 +35,20 @@ export default function ListItem({
   const body = (
     <>
       {/* {leadingWrap} */}
-      <div className="me-auto">
+      <div className="flex-1">
         <div>{title}</div>
         {subtitle && <small className="text-body-secondary">{subtitle}</small>}
       </div>
-      {/* {trailing && (
-        <span style={{ color: `var(--tg-theme-link-color)` }}>{trailing}</span>
-      )} */}
+      {trailing && (
+        <>
+          <span
+            className="ms-2"
+            style={{ color: `var(--tg-theme-link-color)` }}
+          >
+            {trailing}
+          </span>
+        </>
+      )}
       {/* {badge && <span className="badge bg-primary rounded-pill">{badge}</span>}
       {selectionMode == SELECTION_MODE_CHECK && checkIcon} */}
       {/* {to && !to.startsWith('http') && !hideNavIndicator && (
@@ -48,7 +57,7 @@ export default function ListItem({
     </>
   )
 
-  let listItemClasses = 'block py-2 px-4'
+  let listItemClasses = 'flex py-2 px-4'
   //   if (className) {
   //     listItemClasses += ` ${className}`
   //   }

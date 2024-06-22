@@ -6,6 +6,7 @@ import {
   acquireJobLock,
   consumeGems,
   createJob,
+  getChat,
   getJobById,
   getTelegramUser,
   issueDailyGems,
@@ -26,6 +27,12 @@ type DiffusersInputs = {
   num_outputs: number
   ref_image?: string
   faceid_image?: string
+}
+
+export async function getSettings(initData: String) {
+  const chat = await getChat('chatgpt_tg_devbot', 713277695)
+  console.log(chat)
+  return chat as Chat
 }
 
 async function getUser(maybeIssueDailyGems: boolean = false) {

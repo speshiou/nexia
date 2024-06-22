@@ -10,15 +10,26 @@ const JOB_TIMEOUT_IN_SECONDS = 60 * 2
 const myDatabase = async () => {
   const clientPromise = (await import('./mongodb')).default
   const client = await clientPromise
-  return client.db('image_creator')
+  return client.db(process.env.DATABASE_NAME)
 }
 
-type DbCollection = 'telegram_users' | 'jobs'
+type DbCollection = 'telegram_users' | 'jobs' | 'chats'
 type DbFields = {}
 
 const getCollection = async <T extends DbFields>(collection: DbCollection) => {
   const db = await myDatabase()
   return db.collection<T>(collection)
+}
+
+export async function getChatCollection() {
+  return getCollection<Chat>('chats')
+}
+
+export async function getChat(botName: string, chatId: number) {
+  const collection = await getChatCollection()
+  return await collection.findOne({
+    _id: `${botName}_${chatId}`,
+  } as any)
 }
 
 export const getTelegramUser = async (userId: ObjectId) => {

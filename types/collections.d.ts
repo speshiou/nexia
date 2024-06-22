@@ -22,3 +22,15 @@ type Job = {
     images: string[] | null
   }
 }
+
+type Chat = {
+  context: string | null
+  context_src: string | null
+  current_chat_mode: string
+  first_interaction: Date
+  last_interaction: Date
+  used_tokens: number
+  rate_count: number
+  rate_limit_start: Date
+  current_model: string
+}
