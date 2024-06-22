@@ -1,6 +1,7 @@
 interface TelegramWebApp {
   initData: string
   MainButton?: MainButton
+  BackButton?: BackButton
   ready: () => void
   expand: () => void
   onEvent: (eventType: EventType, eventHandler: EventHandler) => void
@@ -25,6 +26,13 @@ interface MainButton {
   onClick: (callback: () => void) => void
   offClick: (callback: () => void) => void
   setParams: (params: MainButtonProps) => void
+}
+
+interface BackButton {
+  show: () => void
+  hide: () => void
+  onClick: (callback: () => void) => void
+  offClick: (callback: () => void) => void
 }
 
 type MainButtonProps = {

@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import '../../globals.css'
+import { TelegramProvider } from '@/components/webapp/telegram-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Image Creator | Nexia',
-  description: 'Reimagine with Generative AI',
+  title: 'Settings | Nexia',
 }
 
 export default function RootLayout({
@@ -16,7 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html>
-      <body className={`${inter.className} dark:bg-black`}>{children}</body>
+      <body className={`${inter.className}`}>
+        <TelegramProvider>{children}</TelegramProvider>
+      </body>
     </html>
   )
 }
