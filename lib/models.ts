@@ -16,4 +16,6 @@ export const models = {
   },
 }
 
+export type ModelType = keyof typeof models
+
 export const defaultModelId = 'gpt'

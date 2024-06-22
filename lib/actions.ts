@@ -6,6 +6,7 @@ import {
   acquireJobLock,
   consumeGems,
   createJob,
+  getUserData,
   getChat,
   getJobById,
   getTelegramUser,
@@ -15,9 +16,12 @@ import {
 } from './data'
 import { upload } from './gcs'
 import TelegramApi from './telegram/api'
-import { base64PngPrefix, dateStamp } from './utils'
+import { base64PngPrefix, dateStamp, sanitizeStringOption } from './utils'
 import { ObjectId } from 'mongodb'
-import { UserMeta } from '@/types/types'
+import { Settings, UserMeta } from '@/types/types'
+import { Chat, Job, JobStatus } from '@/types/collections'
+import { ModelType, defaultModelId, models } from './models'
+import { Locale, defaultLocaleId, locales } from './locales'
 
 type DiffusersInputs = {
   prompt: string
@@ -29,10 +33,32 @@ type DiffusersInputs = {
   faceid_image?: string
 }
 
-export async function getSettings(initData: String) {
-  const chat = await getChat('chatgpt_tg_devbot', 713277695)
-  console.log(chat)
-  return chat as Chat
+export async function getAuthUser(initData: string) {
+  return {
+    id: 713277695,
+  }
+}
+
+export async function getSettings(initData: string) {
+  const authUser = await getAuthUser(initData)
+  const chat = await getChat('chatgpt_tg_devbot', authUser.id)
+  const user = await getUserData(authUser.id)
+  const settings = {
+    current_model: sanitizeStringOption(
+      Object.keys(models),
+      chat?.current_model,
+      defaultModelId,
+    ) as ModelType,
+    preferred_lang: sanitizeStringOption(
+      Object.keys(locales),
+      chat?.preferred_lang,
+      defaultLocaleId,
+    ) as Locale,
+    remaining_tokens: user ? user!.total_tokens - user!.used_tokens : 0,
+    current_chat_mode: chat?.current_chat_mode || '',
+  } satisfies Settings
+
+  return settings
 }
 
 async function getUser(maybeIssueDailyGems: boolean = false) {

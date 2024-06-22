@@ -3,6 +3,7 @@
 import { ObjectId } from 'mongodb'
 import { TelegramUser } from '@/types/telegram'
 import { CogPredictionResult } from '@/app/webhook/prediction/route'
+import { Account, Chat, Job, User } from '@/types/collections'
 
 const DAILY_GEMS = 20
 const JOB_TIMEOUT_IN_SECONDS = 60 * 2
@@ -13,7 +14,7 @@ const myDatabase = async () => {
   return client.db(process.env.DATABASE_NAME)
 }
 
-type DbCollection = 'telegram_users' | 'jobs' | 'chats'
+type DbCollection = 'telegram_users' | 'jobs' | 'chats' | 'users'
 type DbFields = {}
 
 const getCollection = async <T extends DbFields>(collection: DbCollection) => {
@@ -25,10 +26,21 @@ export async function getChatCollection() {
   return getCollection<Chat>('chats')
 }
 
+export async function getUserCollection() {
+  return getCollection<User>('users')
+}
+
 export async function getChat(botName: string, chatId: number) {
   const collection = await getChatCollection()
   return await collection.findOne({
     _id: `${botName}_${chatId}`,
+  } as any)
+}
+
+export async function getUserData(userId: number) {
+  const collection = await getUserCollection()
+  return await collection.findOne({
+    _id: userId,
   } as any)
 }
 

@@ -1,3 +1,6 @@
+import { Locale } from '@/lib/locales'
+import { ModelType } from '@/lib/models'
+
 type Account = {
   user_id: number
   gems: number
@@ -32,5 +35,20 @@ type Chat = {
   used_tokens: number
   rate_count: number
   rate_limit_start: Date
-  current_model: string
+  current_model: ModelType
+  preferred_lang: Locale
+}
+
+type User = {
+  _id: number
+  first_name: string
+  first_seen: Date
+  last_interaction: Date
+  last_name: string | null
+  referred_by: string | null
+  referred_count: number
+  total_tokens: number
+  used_tokens: number
+  username: string | null
+  last_imaging_time: Date | null
 }

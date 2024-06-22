@@ -6,6 +6,8 @@ import ListGroup from '@/components/widget/list_group'
 import ListItem from '@/components/widget/list_item'
 import Scaffold from '@/components/widget/scaffold'
 import { getSettings } from '@/lib/actions'
+import { defaultLocaleId, locales } from '@/lib/locales'
+import { defaultModelId, models } from '@/lib/models'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { usePathname } from 'next/navigation'
@@ -30,7 +32,11 @@ export default function Page() {
           <ListItem
             to={`${pathname}/models`}
             title="AI Model"
-            trailing={data?.current_model || <LoadingSkeleton />}
+            trailing={
+              models[data?.current_model || defaultModelId].title || (
+                <LoadingSkeleton />
+              )
+            }
           />
           <ListItem
             to={`${pathname}/roles`}
@@ -38,15 +44,26 @@ export default function Page() {
             trailing={data?.current_chat_mode || <LoadingSkeleton />}
           />
         </ListGroup>
+
         <ListGroup>
           <ListItem
             title="Remaining tokens"
-            trailing={data?.used_tokens.toLocaleString() || <LoadingSkeleton />}
+            trailing={
+              data?.remaining_tokens.toLocaleString() || <LoadingSkeleton />
+            }
           />
           <ListItem to={`${pathname}/purchase`} title="Purchase more tokens" />
         </ListGroup>
         <ListGroup>
-          <ListItem to={`${pathname}/lang`} title="UI Language" />
+          <ListItem
+            to={`${pathname}/lang`}
+            title="UI Language"
+            trailing={
+              locales[data?.preferred_lang || defaultLocaleId].title || (
+                <LoadingSkeleton />
+              )
+            }
+          />
           <ListItem to={`${pathname}/bots`} title="Bots created by Nexia" />
           <ListItem to="https://t.me/nexia_support" title="Feedback" />
         </ListGroup>

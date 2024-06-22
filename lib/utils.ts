@@ -18,3 +18,14 @@ export function dateStamp() {
 
   return `${year}${month}${day}`
 }
+
+export function sanitizeStringOption(
+  options: string[],
+  value?: string,
+  defaultValue?: string,
+) {
+  if (value && options.includes(value)) {
+    return value
+  }
+  return defaultValue
+}
