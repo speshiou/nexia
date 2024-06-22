@@ -22,6 +22,7 @@ import { Settings, UserMeta } from '@/types/types'
 import { Chat, Job, JobStatus } from '@/types/collections'
 import { ModelType, defaultModelId, models } from './models'
 import { Locale, defaultLocaleId, locales } from './locales'
+import { defaultRoleId, roles } from './roles'
 
 type DiffusersInputs = {
   prompt: string
@@ -55,7 +56,11 @@ export async function getSettings(initData: string) {
       defaultLocaleId,
     ) as Locale,
     remaining_tokens: user ? user!.total_tokens - user!.used_tokens : 0,
-    current_chat_mode: chat?.current_chat_mode || '',
+    current_chat_mode: sanitizeStringOption(
+      Object.keys(roles),
+      chat?.current_chat_mode,
+      defaultRoleId,
+    ) as string,
   } satisfies Settings
 
   return settings
