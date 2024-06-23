@@ -54,8 +54,7 @@ export class PayPal {
   private async makeApiRequest(
     endpoint: string,
     method: string = 'GET',
-    data: any = null,
-    rawBody: any = null,
+    body?: string,
     headers: Record<string, string> | null = null,
   ): Promise<any> {
     const url = this.getApiUrl(endpoint)
@@ -71,10 +70,10 @@ export class PayPal {
     const options: RequestInit = {
       method,
       headers: allHeaders,
-      body:
-        method === 'POST' || method === 'PUT'
-          ? JSON.stringify(data)
-          : undefined,
+    }
+
+    if (method === 'POST' || method === 'PUT') {
+      options['body'] = body
     }
 
     const response = await fetch(url, options)
@@ -88,25 +87,28 @@ export class PayPal {
   }
 
   public async verifyWebhookSig(
-    requestBody: any,
-    requestHeaders: Record<string, string>,
+    requestBody: string,
+    requestHeaders: Headers,
+    webhookId: string,
   ): Promise<boolean> {
     const endpoint = '/v1/notifications/verify-webhook-signature'
 
     const verificationData = {
-      transmission_id: requestHeaders['PAYPAL-TRANSMISSION-ID'],
-      transmission_time: requestHeaders['PAYPAL-TRANSMISSION-TIME'],
-      cert_url: requestHeaders['PAYPAL-CERT-URL'],
-      auth_algo: requestHeaders['PAYPAL-AUTH-ALGO'],
-      transmission_sig: requestHeaders['PAYPAL-TRANSMISSION-SIG'],
-      webhook_id: PAYPAL_WEBHOOK_ID,
+      transmission_id: requestHeaders.get('PAYPAL-TRANSMISSION-ID'),
+      transmission_time: requestHeaders.get('PAYPAL-TRANSMISSION-TIME'),
+      cert_url: requestHeaders.get('PAYPAL-CERT-URL'),
+      auth_algo: requestHeaders.get('PAYPAL-AUTH-ALGO'),
+      transmission_sig: requestHeaders.get('PAYPAL-TRANSMISSION-SIG'),
+      webhook_id: webhookId,
     }
 
     const valuesToEncode = verificationData
-    const payload = {
-      ...valuesToEncode,
-      webhook_event: requestBody,
+    let payload = '{'
+    for (const [field, value] of Object.entries(valuesToEncode)) {
+      payload += `"${field}": "${value}",`
     }
+    payload += `"webhook_event": ${requestBody}`
+    payload += '}'
 
     const result = await this.makeApiRequest(endpoint, 'POST', payload)
     return result.verification_status === 'SUCCESS'
@@ -154,8 +156,7 @@ export class PayPal {
     return this.makeApiRequest(
       '/v2/invoicing/invoices',
       'POST',
-      data,
-      null,
+      JSON.stringify(data),
       headers,
     )
   }
@@ -173,7 +174,7 @@ export class PayPal {
       send_to_recipient: false,
     }
 
-    return this.makeApiRequest(endpoint, 'POST', data)
+    return this.makeApiRequest(endpoint, 'POST', JSON.stringify(data))
   }
 
   public async listInvoices(
