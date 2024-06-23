@@ -4,8 +4,8 @@ import { useTelegram } from '@/components/webapp/telegram-provider'
 import ListGroup from '@/components/widget/list_group'
 import ListItem from '@/components/widget/list_item'
 import Scaffold from '@/components/widget/scaffold'
-import { getSettings } from '@/lib/actions'
-import { locales } from '@/lib/locales'
+import { getSettings, updateSettings } from '@/lib/actions'
+import { Locale, locales } from '@/lib/locales'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
@@ -22,11 +22,11 @@ export default function Page() {
     },
   })
 
-  function handleSelection(e: React.MouseEvent, option: string) {
+  async function handleSelection(e: React.MouseEvent, option: Locale) {
     e.stopPropagation()
     e.preventDefault()
 
-    // setModel(option, startedForResult)
+    await updateSettings({ preferred_lang: option }, webApp?.initData || '')
 
     router.back()
   }
@@ -42,7 +42,7 @@ export default function Page() {
                 title={locale.title}
                 selectionMode="check"
                 selected={data?.preferred_lang == locale.id}
-                onClick={(e) => handleSelection(e, locale.id)}
+                onClick={(e) => handleSelection(e, locale.id as Locale)}
               />
             )
           })}

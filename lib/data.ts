@@ -12,8 +12,8 @@ import {
   Stats,
   User,
 } from '@/types/collections'
-import { PaymentMethod } from '@/types/types'
-import { deleteKey } from './utils'
+import { ChatSetting, ChatSettings, PaymentMethod } from '@/types/types'
+import { deleteKey, isChatSetting } from './utils'
 
 const DAILY_GEMS = 20
 const JOB_TIMEOUT_IN_SECONDS = 60 * 2
@@ -118,6 +118,28 @@ export async function updateOrder(
     { $set: data },
   )
 
+  return updateResult.modifiedCount
+}
+
+export async function updateChat(
+  botName: string,
+  chatId: number,
+  data: Partial<ChatSettings>,
+): Promise<number> {
+  // sanitize
+  const keys = Object.keys(data)
+  for (const key of keys) {
+    if (!isChatSetting(key)) {
+      delete data[key as ChatSetting]
+    }
+  }
+  const chats = await getChatCollection()
+  const updateResult = await chats.updateOne(
+    {
+      _id: `${botName}_${chatId}`,
+    } as any,
+    { $set: data },
+  )
   return updateResult.modifiedCount
 }
 

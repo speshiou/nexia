@@ -5,8 +5,8 @@ import LoadingSkeleton from '@/components/widget/LoadingSkeleton'
 import ListGroup from '@/components/widget/list_group'
 import ListItem from '@/components/widget/list_item'
 import Scaffold from '@/components/widget/scaffold'
-import { getSettings } from '@/lib/actions'
-import { models } from '@/lib/models'
+import { getSettings, updateSettings } from '@/lib/actions'
+import { ModelType, models } from '@/lib/models'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -26,11 +26,11 @@ export default function Page() {
   const searchParams = useSearchParams()
   const startedForResult = searchParams.get('start_for_result')
 
-  function handleSelection(e: React.MouseEvent, option: string) {
+  async function handleSelection(e: React.MouseEvent, option: ModelType) {
     e.stopPropagation()
     e.preventDefault()
 
-    // setModel(option, startedForResult)
+    await updateSettings({ current_model: option }, webApp?.initData || '')
 
     if (startedForResult) {
       webApp?.close()
@@ -51,7 +51,7 @@ export default function Page() {
                 subtitle={model.caption}
                 selectionMode="check"
                 selected={data?.current_model == model.id}
-                onClick={(e) => handleSelection(e, model.id)}
+                onClick={(e) => handleSelection(e, model.id as ModelType)}
               />
             )
           })}

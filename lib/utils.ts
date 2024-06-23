@@ -1,4 +1,4 @@
-import { PaymentMethod } from '@/types/types'
+import { ChatSetting, PaymentMethod } from '@/types/types'
 
 export const escapeHtml = (unsafe: string) => {
   return unsafe
@@ -35,6 +35,15 @@ export function sanitizeStringOption(
 export function isPaymentMethod(method: string): method is PaymentMethod {
   const allowedMethods: PaymentMethod[] = ['crypto', 'paypal']
   return allowedMethods.includes(method as PaymentMethod)
+}
+
+export function isChatSetting(key: string): key is ChatSetting {
+  const keys: ChatSetting[] = [
+    'preferred_lang',
+    'current_chat_mode',
+    'current_model',
+  ]
+  return keys.includes(key as ChatSetting)
 }
 
 export function deleteKey<T extends object, K extends keyof T>(

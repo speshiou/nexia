@@ -18,6 +18,7 @@ import {
   incStats,
   getOrder,
   topUp,
+  updateChat,
 } from './data'
 import { upload } from './gcs'
 import TelegramApi from './telegram/api'
@@ -28,7 +29,7 @@ import {
   sanitizeStringOption,
 } from './utils'
 import { ObjectId } from 'mongodb'
-import { PaymentMethod, Settings, UserMeta } from '@/types/types'
+import { ChatSettings, PaymentMethod, Settings, UserMeta } from '@/types/types'
 import { Chat, Job, JobStatus } from '@/types/collections'
 import { ModelType, defaultModelId, models } from './models'
 import { Locale, defaultLocaleId, locales } from './locales'
@@ -78,6 +79,14 @@ export async function getSettings(initData: string) {
   } satisfies Settings
 
   return settings
+}
+
+export async function updateSettings(
+  settings: Partial<ChatSettings>,
+  initData: string,
+) {
+  const authUser = await getAuthUser(initData)
+  await updateChat(authUser.from, authUser.id, settings)
 }
 
 export async function placeOrder(

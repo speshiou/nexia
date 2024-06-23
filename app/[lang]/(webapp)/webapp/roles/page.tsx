@@ -4,7 +4,7 @@ import { useTelegram } from '@/components/webapp/telegram-provider'
 import ListGroup from '@/components/widget/list_group'
 import ListItem from '@/components/widget/list_item'
 import Scaffold from '@/components/widget/scaffold'
-import { getSettings } from '@/lib/actions'
+import { getSettings, updateSettings } from '@/lib/actions'
 import { roles } from '@/lib/roles'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
@@ -26,11 +26,11 @@ export default function Page() {
 
   const startedForResult = searchParams.get('start_for_result')
 
-  function handleSelection(e: React.MouseEvent, option: string) {
+  async function handleSelection(e: React.MouseEvent, option: string) {
     e.stopPropagation()
     e.preventDefault()
 
-    // setModel(option, startedForResult)
+    await updateSettings({ current_chat_mode: option }, webApp?.initData || '')
 
     if (startedForResult) {
       webApp?.close()

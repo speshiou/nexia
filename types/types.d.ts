@@ -10,10 +10,14 @@ type UserMeta = {
   processing_job?: string
 }
 
-type Settings = Pick<
+type ChatSettings = Pick<
   Chat,
-  'preferred_lang' | 'current_model' | 'current_chat_mode'
-> & {
+  'current_model' | 'current_chat_mode' | 'preferred_lang'
+>
+
+type ChatSetting = keyof ChatSettings
+
+type Settings = ChatSettings & {
   remaining_tokens: number
 }
 
