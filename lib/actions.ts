@@ -13,16 +13,27 @@ import {
   issueDailyGems,
   releaseJobLock,
   updateJobStatus,
+  insertOrder,
+  updateOrder,
+  incStats,
 } from './data'
 import { upload } from './gcs'
 import TelegramApi from './telegram/api'
-import { base64PngPrefix, dateStamp, sanitizeStringOption } from './utils'
+import {
+  base64PngPrefix,
+  dateStamp,
+  isPaymentMethod,
+  sanitizeStringOption,
+} from './utils'
 import { ObjectId } from 'mongodb'
-import { Settings, UserMeta } from '@/types/types'
+import { PaymentMethod, Settings, UserMeta } from '@/types/types'
 import { Chat, Job, JobStatus } from '@/types/collections'
 import { ModelType, defaultModelId, models } from './models'
 import { Locale, defaultLocaleId, locales } from './locales'
 import { defaultRoleId, roles } from './roles'
+import { TokenPack, packages } from './packages'
+import { InvoiceItem, PayPal } from './paypal'
+import { _ } from './i18n'
 
 type DiffusersInputs = {
   prompt: string
@@ -37,12 +48,13 @@ type DiffusersInputs = {
 export async function getAuthUser(initData: string) {
   return {
     id: 713277695,
+    from: 'chatgpt_tg_devbot',
   }
 }
 
 export async function getSettings(initData: string) {
   const authUser = await getAuthUser(initData)
-  const chat = await getChat('chatgpt_tg_devbot', authUser.id)
+  const chat = await getChat(authUser.from, authUser.id)
   const user = await getUserData(authUser.id)
   const settings = {
     current_model: sanitizeStringOption(
@@ -64,6 +76,146 @@ export async function getSettings(initData: string) {
   } satisfies Settings
 
   return settings
+}
+
+export async function placeOrder(
+  packIndex: number,
+  paymentMethod: PaymentMethod,
+  initData: string,
+) {
+  console.log(paymentMethod)
+  const authUser = await getAuthUser(initData)
+  const pack = packages[packIndex]
+  if (!isPaymentMethod(paymentMethod)) {
+    return
+  }
+  const orderId = await insertOrder(
+    authUser.id,
+    authUser.from,
+    paymentMethod,
+    pack.tokens_amount,
+    pack.payment_amount,
+  )
+
+  const invoice = await createInvoice(orderId.toString(), pack, paymentMethod)
+  if (invoice) {
+    let text = _('📋 <b>Your invoice</b>:\n\n')
+    text += `${pack.tokens_amount.toLocaleString()} tokens\n`
+    text += '------------------\n'
+    text += `$${pack.payment_amount.toFixed(2)}\n\n\n`
+
+    text += _('💡 <b>Tips</b>:\n')
+
+    let tips: string[] = []
+    let button_text = ''
+
+    if (paymentMethod === 'paypal') {
+      tips.push(
+        _(
+          'If you do not have a PayPal account, click on the button located below the login button to pay with cards directly.',
+        ),
+      )
+      button_text = _('💳 Pay with Debit or Credit Card')
+    } else if (paymentMethod === 'crypto') {
+      tips.push(
+        _(
+          'If you have any issues related to crypto payment, please contact the customer service in the payment page, or send messages to {} directly for assistance.',
+        ).replace('{}', '@cryptomus_support'),
+      )
+      button_text = _('💎 Pay with Crypto')
+    }
+
+    tips.push(_('Tokens will be credited within 10 minutes of payment.'))
+    tips.push(
+      _(
+        'Please contact @{} if tokens are not received after 1 hour of payment.',
+      ).replace('{}', 'nexia_support'),
+    )
+
+    text += tips.map((s) => `• ${s}`).join('\n\n')
+
+    const reply_markup = {
+      inline_keyboard: [
+        [
+          {
+            text: button_text,
+            url: invoice.url,
+          },
+        ],
+      ],
+    }
+
+    const telegramApi = new TelegramApi(
+      process.env.TELEGRAM_BOT_API_TOKEN || '',
+    )
+    await telegramApi.sendMessage(authUser.id, text, 'HTML', reply_markup)
+    return true
+  }
+  return false
+}
+
+async function createInvoice(
+  orderId: string,
+  pack: TokenPack,
+  paymentMethod: PaymentMethod,
+) {
+  const items: InvoiceItem[] = [
+    {
+      name: `${pack.tokens_amount.toLocaleString()} tokens`,
+      quantity: 1,
+      currency_code: 'USD',
+      price: pack.payment_amount,
+    },
+  ]
+
+  let invoiceId: string | null = null
+  let invoiceUrl: string | null = null
+  const due_interval: number = 60 * 60 * 24
+  let expired_at: number = Date.now() + due_interval * 1000
+
+  switch (paymentMethod) {
+    case 'paypal':
+      const paypal = new PayPal(
+        process.env.PAYPAL_CLIENT_ID || '',
+        process.env.PAYPAL_CLIENT_SECRET || '',
+        process.env.PAYPAL_SANDBOX ? true : false,
+      )
+      const resultPayPalCreate = await paypal.createInvoice(orderId, items)
+      invoiceId = resultPayPalCreate.id
+      const resultPayPalSend = await paypal.sendInvoice(invoiceId!)
+      invoiceUrl = resultPayPalSend.href
+      break
+    case 'crypto':
+      // const data = {
+      //   amount: pack.payment_amount.toString(),
+      //   currency: 'USD',
+      //   order_id: invoiceId,
+      //   lifetime: '7200',
+      //   url_return: `https://t.me/${telegram_bot_name}`,
+      //   url_callback: get_current_host() + PAYMENT_WEBHOOK,
+      // }
+      // // Assuming you have a function or method for making HTTP requests to your crypto API
+      // const paymentResult = await makeCryptoPaymentRequest(data)
+      // invoiceId = paymentResult.uuid
+      // invoiceUrl = paymentResult.url
+      // expired_at = paymentResult.expired_at
+      break
+  }
+
+  console.log({
+    status: 'OK',
+    url: invoiceUrl,
+    expired_at: expired_at,
+  })
+
+  if (invoiceId !== null && invoiceUrl != null) {
+    await updateOrder(orderId, invoiceId, invoiceUrl, expired_at, 'pending')
+    await incStats('new_orders')
+    return {
+      url: invoiceUrl,
+      expired_at: expired_at,
+    }
+  }
 }
 
 async function getUser(maybeIssueDailyGems: boolean = false) {

@@ -17,6 +17,8 @@ export interface ViewportChangedProps {
   isStateStable: boolean
 }
 
+export type ParseMode = 'HTML' | 'Markdown'
+
 interface MainButton {
   show: () => void
   hide: () => void

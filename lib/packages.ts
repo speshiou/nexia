@@ -4,7 +4,7 @@ function price_to_tokens(price: number) {
   return Math.floor((price / TOKEN_PRICE) * 1000)
 }
 
-export const packages = [
+export const packages: TokenPack[] = [
   {
     payment_amount: 1.99,
     tokens_amount: price_to_tokens(2),
@@ -25,3 +25,9 @@ export const packages = [
     caption: '-50%',
   },
 ]
+
+export type TokenPack = {
+  payment_amount: number
+  tokens_amount: number
+  caption?: string
+}

@@ -52,3 +52,30 @@ type User = {
   username: string | null
   last_imaging_time: Date | null
 }
+
+interface Order {
+  user_id: number
+  telegram_bot_name: string
+  payment_method: string
+  token_amount: number
+  total_price: number
+  currency: string
+  create_time: Date
+  status: string
+  referred_by?: string
+  commission_rate?: number
+  commission?: number
+  invoice_id?: string
+  invoice_url?: string
+  expire_time?: Date
+}
+
+interface Stats {
+  new_users?: number
+  referral_new_users?: number
+  net_sales?: number
+  new_orders?: number
+  paid_orders?: number
+}
+
+type StateKey = keyof Stats

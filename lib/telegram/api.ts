@@ -1,3 +1,4 @@
+import { ParseMode } from '@/types/telegram'
 import { escapeHtml } from '../utils'
 
 interface ApiResponse {
@@ -62,11 +63,16 @@ class TelegramApi {
   async sendMessage(
     chatId: number,
     message: string,
+    parseMode?: ParseMode,
     replyMarkup?: InlineKeyboardMarkup,
   ): Promise<any> {
     const formData = new FormData()
     formData.append('chat_id', chatId.toString())
     formData.append('text', message)
+
+    if (parseMode) {
+      formData.append('parse_mode', parseMode)
+    }
 
     if (replyMarkup) {
       formData.append('reply_markup', JSON.stringify(replyMarkup))

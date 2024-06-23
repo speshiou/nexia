@@ -8,10 +8,12 @@ export default function Scaffold({
   children,
   title,
   root = false,
+  showMainButton = false,
 }: {
   children: ReactNode
   title: string
   root?: boolean
+  showMainButton?: boolean
 }) {
   const router = useRouter()
   const { initialized, webApp } = useTelegram()
@@ -25,6 +27,12 @@ export default function Scaffold({
       webApp?.BackButton?.hide()
     } else {
       webApp?.BackButton?.show()
+    }
+
+    if (showMainButton) {
+      webApp?.MainButton?.show()
+    } else {
+      webApp?.MainButton?.hide()
     }
 
     webApp?.BackButton?.onClick(back)

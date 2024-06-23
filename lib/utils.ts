@@ -1,3 +1,5 @@
+import { PaymentMethod } from '@/types/types'
+
 export const escapeHtml = (unsafe: string) => {
   return unsafe
     .replaceAll('&', '&amp;')
@@ -28,4 +30,16 @@ export function sanitizeStringOption(
     return value
   }
   return defaultValue
+}
+
+export function isPaymentMethod(method: string): method is PaymentMethod {
+  const allowedMethods: PaymentMethod[] = ['crypto', 'paypal']
+  return allowedMethods.includes(method as PaymentMethod)
+}
+
+export function deleteKey<T extends object, K extends keyof T>(
+  obj: T,
+  key: K,
+): void {
+  delete obj[key]
 }

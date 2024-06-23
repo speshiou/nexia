@@ -16,3 +16,5 @@ type Settings = Pick<
 > & {
   remaining_tokens: number
 }
+
+type PaymentMethod = 'paypal' | 'crypto'

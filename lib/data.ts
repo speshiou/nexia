@@ -3,7 +3,17 @@
 import { ObjectId } from 'mongodb'
 import { TelegramUser } from '@/types/telegram'
 import { CogPredictionResult } from '@/app/webhook/prediction/route'
-import { Account, Chat, Job, User } from '@/types/collections'
+import {
+  Account,
+  Chat,
+  Job,
+  Order,
+  StateKey,
+  Stats,
+  User,
+} from '@/types/collections'
+import { PaymentMethod } from '@/types/types'
+import { deleteKey } from './utils'
 
 const DAILY_GEMS = 20
 const JOB_TIMEOUT_IN_SECONDS = 60 * 2
@@ -14,7 +24,13 @@ const myDatabase = async () => {
   return client.db(process.env.DATABASE_NAME)
 }
 
-type DbCollection = 'telegram_users' | 'jobs' | 'chats' | 'users'
+type DbCollection =
+  | 'telegram_users'
+  | 'jobs'
+  | 'chats'
+  | 'users'
+  | 'orders'
+  | 'stats'
 type DbFields = {}
 
 const getCollection = async <T extends DbFields>(collection: DbCollection) => {
@@ -30,6 +46,14 @@ export async function getUserCollection() {
   return getCollection<User>('users')
 }
 
+export async function getOrderCollection() {
+  return getCollection<Order>('orders')
+}
+
+export async function getStatCollection() {
+  return getCollection<Stats>('stats')
+}
+
 export async function getChat(botName: string, chatId: number) {
   const collection = await getChatCollection()
   return await collection.findOne({
@@ -42,6 +66,107 @@ export async function getUserData(userId: number) {
   return await collection.findOne({
     _id: userId,
   } as any)
+}
+
+export async function insertOrder(
+  userId: number,
+  telegram_bot_name: string,
+  paymentMethod: PaymentMethod,
+  tokenAmount: number,
+  totalPrice: number,
+  currency: string = 'USD',
+) {
+  const orderData: Order = {
+    user_id: userId,
+    telegram_bot_name: telegram_bot_name,
+    payment_method: paymentMethod,
+    token_amount: tokenAmount,
+    total_price: totalPrice,
+    currency: currency,
+    create_time: new Date(), // MongoDB will handle this as UTC
+    status: 'created',
+  }
+
+  // credit referred user
+  // const user = await this.getUser(userId)
+  // if (user && 'referred_by' in user && user.referred_by) {
+  //   const referredBy = user.referred_by
+  //   order.referred_by = referredBy
+  //   const commissionRate = await this.getCommissionRate(referredBy)
+  //   order.commission_rate = commissionRate
+  //   order.commission = commissionRate * totalPrice
+  // }
+
+  const orders = await getOrderCollection()
+  const order = await orders.insertOne(orderData)
+
+  return order.insertedId
+}
+
+export async function updateOrder(
+  orderId: string,
+  invoiceId?: string,
+  invoiceUrl?: string,
+  expireTime?: number,
+  status?: string,
+): Promise<number> {
+  const data: Partial<Order> = {}
+
+  if (invoiceId) {
+    data.invoice_id = invoiceId
+  }
+  if (invoiceUrl) {
+    data.invoice_url = invoiceUrl
+  }
+  if (expireTime) {
+    data.expire_time = new Date(expireTime)
+  }
+  if (status) {
+    data.status = status
+  }
+
+  const orders = await getOrderCollection()
+  const updateResult = await orders.updateOne(
+    { _id: new ObjectId(orderId) },
+    { $set: data },
+  )
+
+  return updateResult.modifiedCount
+}
+
+export async function incStats(
+  field: string,
+  amount: number = 1,
+): Promise<void> {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const timestamp = today.getTime()
+
+  const defaultData: Partial<Stats> = {
+    new_users: 0,
+    referral_new_users: 0,
+    net_sales: 0,
+    new_orders: 0,
+    paid_orders: 0,
+  }
+
+  if (!(field in defaultData)) {
+    throw new Error(`Invalid field ${field} for stats`)
+  }
+
+  // Prevent the effected field from the default data
+  delete defaultData[field as StateKey]
+
+  const inc = { [field]: amount }
+
+  const query = { _id: today }
+  const update = {
+    $setOnInsert: defaultData,
+    $inc: inc,
+  }
+
+  const stats = await getStatCollection()
+  await stats.updateOne(query, update, { upsert: true })
 }
 
 export const getTelegramUser = async (userId: ObjectId) => {

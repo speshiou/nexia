@@ -26,6 +26,11 @@ export async function POST(request: Request) {
     ],
   } satisfies InlineKeyboardMarkup
   const text = '💫 Unleash your imagination'
-  await telegramApi.sendMessage(data.message.chat.id, text, replyMarkup)
+  await telegramApi.sendMessage(
+    data.message.chat.id,
+    text,
+    undefined,
+    replyMarkup,
+  )
   return Response.json({ status: 'OK' })
 }
