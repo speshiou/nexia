@@ -16,6 +16,8 @@ import {
   insertOrder,
   updateOrder,
   incStats,
+  getOrder,
+  topUp,
 } from './data'
 import { upload } from './gcs'
 import TelegramApi from './telegram/api'
@@ -209,12 +211,69 @@ async function createInvoice(
   })
 
   if (invoiceId !== null && invoiceUrl != null) {
-    await updateOrder(orderId, invoiceId, invoiceUrl, expired_at, 'pending')
+    await updateOrder(orderId, {
+      invoice_id: invoiceId,
+      invoice_url: invoiceUrl,
+      expire_time: new Date(expired_at),
+      status: 'pending',
+    })
     await incStats('new_orders')
     return {
       url: invoiceUrl,
       expired_at: expired_at,
     }
+  }
+}
+
+export async function finishOrder(orderId: string) {
+  const order = await getOrder(orderId)
+  if (!order) {
+    return
+  }
+  if (order.status === 'finished') {
+    console.error(`dup finished order ${orderId}`)
+    return
+  }
+
+  const updated = await topUp(order.user_id, order.token_amount)
+  if (!updated) {
+    return
+  }
+  await updateOrder(orderId, { status: 'finished' })
+  try {
+    await updateOrder(orderId, { status: 'finished' })
+
+    await incStats('paid_orders')
+    await incStats('net_sales', order.total_price)
+
+    // if (order.referred_by) {
+    //   await creditReferralReward(order.referred_by, order.commission)
+    // }
+
+    const replyMarkup = {
+      inline_keyboard: [
+        [
+          {
+            text: '👛 Check balance',
+            callback_data: 'balance',
+          },
+        ],
+      ],
+    }
+
+    const message = `✅ ${order.token_amount.toLocaleString()} tokens have been credited`
+
+    const telegramApi = new TelegramApi(
+      process.env.TELEGRAM_BOT_API_TOKEN || '',
+    )
+    await telegramApi.sendMessage(
+      order.user_id,
+      message,
+      undefined,
+      replyMarkup,
+    )
+  } catch (error) {
+    console.error(`Error finishing order ${orderId}:`, error)
   }
 }
 

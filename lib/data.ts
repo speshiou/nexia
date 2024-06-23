@@ -103,28 +103,15 @@ export async function insertOrder(
   return order.insertedId
 }
 
+export async function getOrder(orderId: string) {
+  const orders = await getOrderCollection()
+  return await orders.findOne({ _id: new ObjectId(orderId) })
+}
+
 export async function updateOrder(
   orderId: string,
-  invoiceId?: string,
-  invoiceUrl?: string,
-  expireTime?: number,
-  status?: string,
+  data: Pick<Order, 'invoice_id' | 'invoice_url' | 'expire_time' | 'status'>,
 ): Promise<number> {
-  const data: Partial<Order> = {}
-
-  if (invoiceId) {
-    data.invoice_id = invoiceId
-  }
-  if (invoiceUrl) {
-    data.invoice_url = invoiceUrl
-  }
-  if (expireTime) {
-    data.expire_time = new Date(expireTime)
-  }
-  if (status) {
-    data.status = status
-  }
-
   const orders = await getOrderCollection()
   const updateResult = await orders.updateOne(
     { _id: new ObjectId(orderId) },
@@ -132,6 +119,24 @@ export async function updateOrder(
   )
 
   return updateResult.modifiedCount
+}
+
+export async function topUp(
+  userId: number,
+  topUpTokenAmount: number,
+): Promise<number> {
+  try {
+    const users = await getUserCollection()
+    const updateResult = await users.updateOne(
+      { _id: userId },
+      { $inc: { total_tokens: topUpTokenAmount } },
+    )
+
+    return updateResult.modifiedCount ?? 0
+  } catch (error) {
+    console.error(`Error updating user ${userId} tokens:`, error)
+    return 0 // Return 0 or handle error as needed
+  }
 }
 
 export async function incStats(

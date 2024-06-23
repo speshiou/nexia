@@ -1,3 +1,4 @@
+import { finishOrder } from '@/lib/actions'
 import { PayPal } from '@/lib/paypal'
 
 export const dynamic = 'force-dynamic' // defaults to auto
@@ -42,8 +43,7 @@ export async function POST(request: Request) {
 
     console.log(`webhook=${data.event_type} order=${invoiceId}`)
 
-    // const db = new DbManager()
-    // db.finishOrder(invoiceNumber)
+    await finishOrder(invoiceNumber)
 
     return new Response('OK', {
       status: 200,
