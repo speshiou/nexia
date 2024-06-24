@@ -37,7 +37,14 @@ import { RoleData, defaultRoleId, roles } from './roles'
 import { TokenPack, packages } from './packages'
 import { InvoiceItem, PayPal } from './paypal'
 import { _ } from './i18n'
-import { createRole, deleteRole, getRoles } from './db/roles'
+import {
+  Role,
+  createRole,
+  deleteRole,
+  getRole,
+  getRoles,
+  updateRole,
+} from './db/roles'
 
 type DiffusersInputs = {
   prompt: string
@@ -100,12 +107,28 @@ export async function getCustomRoles(initData: string) {
 
 export async function upsertCustomRole(formData: FormData) {
   const authUser = await getAuthUser(formData.get('init_data') as string)
-  const newRoleId = createRole({
-    user_id: authUser.id,
-    name: formData.get('name') as string,
-    prompt: formData.get('prompt') as string,
-  })
-  return !!newRoleId
+  const roleId = formData.get('id')
+
+  if (roleId) {
+    const result = updateRole(roleId as string, authUser.id, {
+      name: formData.get('name') as string,
+      prompt: formData.get('prompt') as string,
+    })
+    return !!result
+  } else {
+    const data: Role = {
+      user_id: authUser.id,
+      name: formData.get('name') as string,
+      prompt: formData.get('prompt') as string,
+    }
+    const newRoleId = createRole(data)
+    return !!newRoleId
+  }
+}
+
+export async function getCustomRole(roleId: string, initData: string) {
+  const authUser = await getAuthUser(initData)
+  return await getRole(roleId, authUser.id)
 }
 
 export async function deleteCustomRole(roleId: string, initData: string) {

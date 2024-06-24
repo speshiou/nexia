@@ -25,6 +25,7 @@ export default function Page({
 
     setProcessing(true)
     const formData = new FormData(form)
+    formData.set('id', params.roleId)
     const result = await upsertCustomRole(formData)
     if (result) {
       router.back()
@@ -68,7 +69,7 @@ export default function Page({
         onClick: submit,
       }}
     >
-      <RoleForm ref={formRef} />
+      <RoleForm ref={formRef} initialRoleId={params.roleId} />
       <div className="text-center p-4">
         <button className="text-red-600" onClick={handleDelete}>
           Delete

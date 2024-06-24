@@ -1,14 +1,26 @@
 'use client'
 
-import { upsertCustomRole } from '@/lib/actions'
+import { getCustomRole, upsertCustomRole } from '@/lib/actions'
 import { useTelegram } from './webapp/telegram-provider'
 import { FormHTMLAttributes, forwardRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 const RoleForm = forwardRef<
   HTMLFormElement,
-  FormHTMLAttributes<HTMLFormElement>
+  FormHTMLAttributes<HTMLFormElement> & { initialRoleId?: string }
 >((props, ref) => {
   const { initialized, webApp } = useTelegram()
+
+  const { isPending, error, data } = useQuery({
+    queryKey: ['get_role', initialized],
+    queryFn: () => {
+      return getCustomRole(props.initialRoleId!, webApp?.initData || '').then(
+        (result) => result,
+      )
+    },
+    enabled: !!props.initialRoleId,
+  })
+
   return (
     <form ref={ref} {...props} action={upsertCustomRole}>
       <input type="hidden" name="init_data" value={webApp?.initData} />
@@ -27,6 +39,7 @@ const RoleForm = forwardRef<
               id="name"
               className="w-full px-4 rounded-md py-2 border-0 ring-1 ring-inset bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
               placeholder="Name of the role"
+              defaultValue={data?.name}
             />
           </div>
         </div>
@@ -44,7 +57,7 @@ const RoleForm = forwardRef<
               name="prompt"
               rows={3}
               className="block w-full rounded-md border-0 py-1.5 bg-transparent text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 p-4"
-              defaultValue={''}
+              defaultValue={data?.prompt}
               placeholder="Write some instructions on how the chatbot should respond to your requests."
             />
           </div>

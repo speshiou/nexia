@@ -58,6 +58,31 @@ export async function createRole(roleData: Role) {
   return result.insertedId
 }
 
+export async function updateRole(
+  roleId: string,
+  userId: number,
+  roleData: Pick<Role, 'name' | 'prompt'>,
+) {
+  const validData = RoleSchema.omit({ user_id: true }).parse(roleData)
+  const roles = await getRoleCollection()
+  const result = await roles.updateOne(
+    { _id: new ObjectId(roleId), user_id: userId },
+    { $set: validData },
+  )
+  return result.upsertedId
+}
+
+export async function getRole(roleId: string, userId: number) {
+  const objectId = new ObjectId(roleId)
+
+  const filter = {
+    _id: objectId,
+    user_id: userId,
+  }
+  const roles = await getRoleCollection()
+  return await roles.findOne(filter)
+}
+
 export async function deleteRole(roleId: string, userId: number) {
   const objectId = new ObjectId(roleId)
 
