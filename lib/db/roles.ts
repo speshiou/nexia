@@ -1,11 +1,14 @@
 import { Document } from 'mongodb'
 import { getCollection } from '../data'
+import { z } from 'zod'
 
-export type Role = {
-  user_id: number
-  name: string
-  prompt: string
-}
+export const RoleSchema = z.object({
+  user_id: z.coerce.number(),
+  name: z.string().trim().min(1).max(30),
+  prompt: z.string().trim().min(1).max(2000),
+})
+
+export type Role = z.infer<typeof RoleSchema>
 
 export type RoleTile = Pick<Role, 'name'>
 
@@ -46,4 +49,11 @@ export async function getRoles(
     .toArray()
 
   return results
+}
+
+export async function createRole(roleData: Role) {
+  const validData = RoleSchema.parse(roleData)
+  const roles = await getRoleCollection()
+  const result = await roles.insertOne(validData)
+  return result.insertedId
 }

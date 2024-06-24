@@ -69,7 +69,7 @@ export default function Page() {
               />
             )
           })}
-          {customRoles?.length || 0 >= MAX_ROLE_LIMIT ? (
+          {(customRoles?.length || 0) >= MAX_ROLE_LIMIT ? (
             <ListItem title={'Reach the limit of custom roles'} />
           ) : (
             <ListItem to={`${pathname}/create`} title={'Add a custom role'} />
