@@ -24,16 +24,19 @@ const myDatabase = async () => {
   return client.db(process.env.DATABASE_NAME)
 }
 
-type DbCollection =
+export type DbCollection =
   | 'telegram_users'
   | 'jobs'
   | 'chats'
   | 'users'
   | 'orders'
   | 'stats'
+  | 'roles'
 type DbFields = {}
 
-const getCollection = async <T extends DbFields>(collection: DbCollection) => {
+export const getCollection = async <T extends DbFields>(
+  collection: DbCollection,
+) => {
   const db = await myDatabase()
   return db.collection<T>(collection)
 }

@@ -1,3 +1,8 @@
+export type RoleData = {
+  id: string
+  name: string
+}
+
 export const roles = {
   chatgpt: {
     id: 'chatgpt',

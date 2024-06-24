@@ -33,10 +33,11 @@ import { ChatSettings, PaymentMethod, Settings, UserMeta } from '@/types/types'
 import { Chat, Job, JobStatus } from '@/types/collections'
 import { ModelType, defaultModelId, models } from './models'
 import { Locale, defaultLocaleId, locales } from './locales'
-import { defaultRoleId, roles } from './roles'
+import { RoleData, defaultRoleId, roles } from './roles'
 import { TokenPack, packages } from './packages'
 import { InvoiceItem, PayPal } from './paypal'
 import { _ } from './i18n'
+import { getRoles } from './db/roles'
 
 type DiffusersInputs = {
   prompt: string
@@ -87,6 +88,14 @@ export async function updateSettings(
 ) {
   const authUser = await getAuthUser(initData)
   await updateChat(authUser.from, authUser.id, settings)
+}
+
+export async function getCustomRoles(initData: string) {
+  const authUser = await getAuthUser(initData)
+  const roles = await getRoles(authUser.id)
+  return roles.map((entry) => {
+    return { id: entry._id.toString(), name: entry.name } satisfies RoleData
+  })
 }
 
 export async function placeOrder(
