@@ -62,7 +62,6 @@ export default function Scaffold({
         webApp?.MainButton?.offClick(mainButtonOptions.onClick)
       }
       webApp?.MainButton?.hideProgress()
-      webApp?.BackButton?.offClick(back)
     }
   }, [initialized, mainButtonOptions])
 
