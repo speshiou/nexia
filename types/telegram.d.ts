@@ -2,11 +2,24 @@ interface TelegramWebApp {
   initData: string
   MainButton?: MainButton
   BackButton?: BackButton
+  showPopup: (params: PopupParams, callback?: (id: string) => void) => void
   close: () => void
   ready: () => void
   expand: () => void
   onEvent: (eventType: EventType, eventHandler: EventHandler) => void
   offEvent: (eventType: EventType, eventHandler: EventHandler) => void
+}
+
+export type PopupButton = {
+  id?: string
+  type: 'default' | 'ok' | 'close' | 'cancel' | 'destructive'
+  text?: string
+}
+
+export type PopupParams = {
+  title: string
+  message: string
+  buttons: PopupButton[]
 }
 
 export type EventType = 'viewportChanged'

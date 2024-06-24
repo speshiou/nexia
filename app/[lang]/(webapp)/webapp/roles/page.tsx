@@ -9,6 +9,7 @@ import { MAX_ROLE_LIMIT } from '@/lib/constants'
 import { roles } from '@/lib/roles'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
+import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 export default function Page() {
@@ -66,6 +67,16 @@ export default function Page() {
                 selectionMode="check"
                 selected={settings?.current_chat_mode == role.id}
                 onClick={(e) => handleSelection(e, role.id)}
+                trailing={
+                  <Link
+                    href={`${pathname}/${role.id}/edit`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                    }}
+                  >
+                    {'Edit'}
+                  </Link>
+                }
               />
             )
           })}

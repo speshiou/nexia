@@ -1,4 +1,4 @@
-import { Document } from 'mongodb'
+import { Document, ObjectId } from 'mongodb'
 import { getCollection } from '../data'
 import { z } from 'zod'
 
@@ -56,4 +56,16 @@ export async function createRole(roleData: Role) {
   const roles = await getRoleCollection()
   const result = await roles.insertOne(validData)
   return result.insertedId
+}
+
+export async function deleteRole(roleId: string, userId: number) {
+  const objectId = new ObjectId(roleId)
+
+  const filter = {
+    _id: objectId,
+    user_id: userId,
+  }
+  const roles = await getRoleCollection()
+  const result = await roles.deleteOne(filter)
+  return result.deletedCount
 }

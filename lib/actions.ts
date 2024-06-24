@@ -37,7 +37,7 @@ import { RoleData, defaultRoleId, roles } from './roles'
 import { TokenPack, packages } from './packages'
 import { InvoiceItem, PayPal } from './paypal'
 import { _ } from './i18n'
-import { createRole, getRoles } from './db/roles'
+import { createRole, deleteRole, getRoles } from './db/roles'
 
 type DiffusersInputs = {
   prompt: string
@@ -106,6 +106,11 @@ export async function upsertCustomRole(formData: FormData) {
     prompt: formData.get('prompt') as string,
   })
   return !!newRoleId
+}
+
+export async function deleteCustomRole(roleId: string, initData: string) {
+  const authUser = await getAuthUser(initData)
+  return !!(await deleteRole(roleId, authUser.id))
 }
 
 export async function placeOrder(
