@@ -45,6 +45,7 @@ import {
   getRoles,
   updateRole,
 } from './db/roles'
+import { MAX_ROLE_LIMIT } from './constants'
 
 type DiffusersInputs = {
   prompt: string
@@ -116,6 +117,10 @@ export async function upsertCustomRole(formData: FormData) {
     })
     return !!result
   } else {
+    const roles = await getRoles(authUser.id)
+    if (roles.length >= MAX_ROLE_LIMIT) {
+      return false
+    }
     const data: Role = {
       user_id: authUser.id,
       name: formData.get('name') as string,
