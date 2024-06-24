@@ -13,25 +13,10 @@ export default function Page() {
   const { initialized, webApp } = useTelegram()
   const [packageIndex, setPackageIndex] = useState(0)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('paypal')
-
-  useEffect(() => {
-    if (initialized) {
-      webApp?.MainButton?.setParams({
-        text: 'Place Order',
-      })
-      webApp?.MainButton?.enable()
-      webApp?.MainButton?.onClick(handleClick)
-    }
-
-    return () => {
-      webApp?.MainButton?.offClick(handleClick)
-      webApp?.MainButton?.hideProgress()
-    }
-  }, [initialized, packageIndex, paymentMethod])
+  const [processing, setProcessing] = useState(false)
 
   async function handleClick() {
-    webApp?.MainButton?.disable()
-    webApp?.MainButton?.showProgress()
+    setProcessing(true)
     const result = await placeOrder(
       packageIndex,
       paymentMethod,
@@ -39,11 +24,21 @@ export default function Page() {
     )
     if (result) {
       webApp?.close()
+    } else {
+      setProcessing(false)
     }
   }
 
   return (
-    <Scaffold title="Purchase Tokens" root={true} showMainButton={true}>
+    <Scaffold
+      title="Purchase Tokens"
+      mainButtonOptions={{
+        processing: processing,
+        show: true,
+        text: 'Place Order',
+        onClick: handleClick,
+      }}
+    >
       <div>
         <ListGroup>
           {packages.map((p, i) => {

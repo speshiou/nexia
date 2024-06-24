@@ -32,7 +32,7 @@ export default function Page() {
   }
 
   return (
-    <Scaffold title="UI Language" root={true}>
+    <Scaffold title="UI Language">
       <div className={clsx({ 'animate-pulse': isPending })}>
         <ListGroup>
           {Object.values(locales).map((locale) => {

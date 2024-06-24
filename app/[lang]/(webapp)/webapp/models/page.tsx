@@ -40,7 +40,7 @@ export default function Page() {
   }
 
   return (
-    <Scaffold title="AI Model" root={true}>
+    <Scaffold title="AI Model">
       <div className={clsx({ 'animate-pulse': isPending })}>
         <ListGroup>
           {Object.values(models).map((model) => {

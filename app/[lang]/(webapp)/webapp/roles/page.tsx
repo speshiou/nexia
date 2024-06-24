@@ -9,10 +9,11 @@ import { MAX_ROLE_LIMIT } from '@/lib/constants'
 import { roles } from '@/lib/roles'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 export default function Page() {
   const { initialized, webApp } = useTelegram()
+  const pathname = usePathname()
   const router = useRouter()
   const {
     isPending,
@@ -52,7 +53,7 @@ export default function Page() {
   }
 
   return (
-    <Scaffold title="Role" root={true}>
+    <Scaffold title="Role">
       <p>{'Tailor the chatbot to better meet your needs.'}</p>
       <div className={clsx({ 'animate-pulse': isPending })}>
         <ListGroup>
@@ -71,7 +72,7 @@ export default function Page() {
           {customRoles?.length || 0 >= MAX_ROLE_LIMIT ? (
             <ListItem title={'Reach the limit of custom roles'} />
           ) : (
-            <ListItem title={'Add a custom role'} />
+            <ListItem to={`${pathname}/create`} title={'Add a custom role'} />
           )}
         </ListGroup>
         <ListGroup>

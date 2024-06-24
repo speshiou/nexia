@@ -8,39 +8,67 @@ export default function Scaffold({
   children,
   title,
   root = false,
-  showMainButton = false,
+  mainButtonOptions,
 }: {
   children: ReactNode
   title: string
   root?: boolean
-  showMainButton?: boolean
+  mainButtonOptions?: {
+    show: boolean
+    processing: boolean
+    text: string
+    onClick: () => void
+  }
 }) {
   const router = useRouter()
   const { initialized, webApp } = useTelegram()
 
   useEffect(() => {
-    function back() {
-      router.back()
-    }
-
     if (root) {
       webApp?.BackButton?.hide()
     } else {
       webApp?.BackButton?.show()
+      webApp?.BackButton?.onClick(back)
     }
-
-    if (showMainButton) {
-      webApp?.MainButton?.show()
-    } else {
-      webApp?.MainButton?.hide()
-    }
-
-    webApp?.BackButton?.onClick(back)
 
     return () => {
       webApp?.BackButton?.offClick(back)
     }
-  }, [])
+  }, [initialized, root])
+
+  useEffect(() => {
+    if (mainButtonOptions) {
+      webApp?.MainButton?.setParams({
+        text: mainButtonOptions.text,
+      })
+      if (mainButtonOptions.show) {
+        webApp?.MainButton?.show()
+      } else {
+        webApp?.MainButton?.hide()
+      }
+      if (!mainButtonOptions.processing) {
+        webApp?.MainButton?.enable()
+      } else {
+        webApp?.MainButton?.showProgress()
+        webApp?.MainButton?.disable()
+      }
+      webApp?.MainButton?.onClick(mainButtonOptions.onClick)
+    } else {
+      webApp?.MainButton?.hide()
+    }
+
+    return () => {
+      if (mainButtonOptions) {
+        webApp?.MainButton?.offClick(mainButtonOptions.onClick)
+      }
+      webApp?.MainButton?.hideProgress()
+      webApp?.BackButton?.offClick(back)
+    }
+  }, [initialized, mainButtonOptions])
+
+  function back() {
+    router.back()
+  }
 
   return (
     <div className="container py-4 px-3 mx-auto user-select-none">
