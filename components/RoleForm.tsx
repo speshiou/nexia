@@ -2,11 +2,15 @@
 
 import { upsertCustomRole } from '@/lib/actions'
 import { useTelegram } from './webapp/telegram-provider'
+import { FormHTMLAttributes, forwardRef } from 'react'
 
-export default function RoleForm() {
+const RoleForm = forwardRef<
+  HTMLFormElement,
+  FormHTMLAttributes<HTMLFormElement>
+>((props, ref) => {
   const { initialized, webApp } = useTelegram()
   return (
-    <form action={upsertCustomRole}>
+    <form ref={ref} {...props} action={upsertCustomRole}>
       <input type="hidden" name="init_data" value={webApp?.initData} />
       <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-6">
         <div className="col-span-full">
@@ -57,4 +61,6 @@ export default function RoleForm() {
       </div>
     </form>
   )
-}
+})
+
+export { RoleForm as default }
