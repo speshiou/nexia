@@ -1,3 +1,4 @@
+import { themeProps } from '@/lib/telegram/constants'
 import clsx from 'clsx'
 import { Url } from 'next/dist/shared/lib/router/router'
 import Link from 'next/link'
@@ -47,8 +48,12 @@ export default function ListItem({
     <>
       {/* {leadingWrap} */}
       <div className="flex-1">
-        <div>{title}</div>
-        {subtitle && <small className="text-body-secondary">{subtitle}</small>}
+        <div style={{ color: themeProps.text_color }}>{title}</div>
+        {subtitle && (
+          <small style={{ color: themeProps.subtitle_text_color }}>
+            {subtitle}
+          </small>
+        )}
       </div>
       {trailing && (
         <>

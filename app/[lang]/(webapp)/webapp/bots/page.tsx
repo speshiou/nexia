@@ -1,5 +1,5 @@
-import ListGroup from '@/components/widget/list_group'
-import ListItem from '@/components/widget/list_item'
+import ListGroup from '@/components/widget/ListGroup'
+import ListItem from '@/components/widget/ListItem'
 import Scaffold from '@/components/widget/scaffold'
 
 export default async function Page() {

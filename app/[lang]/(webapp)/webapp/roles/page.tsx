@@ -1,12 +1,13 @@
 'use client'
 
 import { useTelegram } from '@/components/webapp/telegram-provider'
-import ListGroup from '@/components/widget/list_group'
-import ListItem from '@/components/widget/list_item'
+import ListGroup from '@/components/widget/ListGroup'
+import ListItem from '@/components/widget/ListItem'
 import Scaffold from '@/components/widget/scaffold'
 import { getCustomRoles, getSettings, updateSettings } from '@/lib/actions'
 import { MAX_ROLE_LIMIT } from '@/lib/constants'
 import { roles } from '@/lib/roles'
+import { themeProps } from '@/lib/telegram/constants'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import Link from 'next/link'
@@ -55,9 +56,11 @@ export default function Page() {
 
   return (
     <Scaffold title="Role">
-      <p>{'Tailor the chatbot to better meet your needs.'}</p>
+      <p style={{ color: themeProps.hint_color }}>
+        {'Tailor the chatbot to better meet your needs.'}
+      </p>
       <div className={clsx({ 'animate-pulse': isPending })}>
-        <ListGroup>
+        <ListGroup title="Custom">
           {!customRoles?.length && <ListItem title={'No custom roles yet'} />}
           {customRoles?.map((role) => {
             return (
@@ -83,10 +86,17 @@ export default function Page() {
           {(customRoles?.length || 0) >= MAX_ROLE_LIMIT ? (
             <ListItem title={'Reach the limit of custom roles'} />
           ) : (
-            <ListItem to={`${pathname}/create`} title={'Add a custom role'} />
+            <ListItem
+              to={`${pathname}/create`}
+              title={
+                <span style={{ color: themeProps.link_color }}>
+                  Add a custom role
+                </span>
+              }
+            />
           )}
         </ListGroup>
-        <ListGroup>
+        <ListGroup title="System">
           {Object.values(roles).map((role) => {
             return (
               <ListItem

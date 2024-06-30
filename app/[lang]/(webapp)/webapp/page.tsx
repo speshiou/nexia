@@ -2,8 +2,8 @@
 
 import { useTelegram } from '@/components/webapp/telegram-provider'
 import LoadingSkeleton from '@/components/widget/LoadingSkeleton'
-import ListGroup from '@/components/widget/list_group'
-import ListItem from '@/components/widget/list_item'
+import ListGroup from '@/components/widget/ListGroup'
+import ListItem from '@/components/widget/ListItem'
 import Scaffold from '@/components/widget/scaffold'
 import { getSettings } from '@/lib/actions'
 import { defaultLocaleId, locales } from '@/lib/locales'
@@ -12,6 +12,7 @@ import { defaultRoleId, roles } from '@/lib/roles'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { usePathname } from 'next/navigation'
+import { themeProps } from '@/lib/telegram/constants'
 
 export default function Page() {
   const { initialized, webApp } = useTelegram()
@@ -20,10 +21,9 @@ export default function Page() {
   const { isPending, error, data } = useQuery({
     queryKey: ['query_settings', initialized],
     queryFn: () => {
-      const app = webApp
-      if (!app) return null
-      return getSettings(app.initData).then((result) => result)
+      return getSettings(webApp?.initData || '')
     },
+    enabled: initialized,
   })
 
   const allRoles: Record<string, any> = {
@@ -63,7 +63,14 @@ export default function Page() {
               data?.remaining_tokens.toLocaleString() || <LoadingSkeleton />
             }
           />
-          <ListItem to={`${pathname}/purchase`} title="Purchase more tokens" />
+          <ListItem
+            to={`${pathname}/purchase`}
+            title={
+              <span style={{ color: themeProps.link_color }}>
+                Purchase more tokens
+              </span>
+            }
+          />
         </ListGroup>
         <ListGroup>
           <ListItem

@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from 'react'
 import { useTelegram } from '../webapp/telegram-provider'
 import { useRouter } from 'next/navigation'
+import { themeProps } from '@/lib/telegram/constants'
 
 export default function Scaffold({
   children,
@@ -71,7 +72,11 @@ export default function Scaffold({
 
   return (
     <div className="container py-4 px-3 mx-auto user-select-none">
-      {title && <h1 className="mb-3 font-bold">{title}</h1>}
+      {title && (
+        <h1 className="mb-3 font-bold" style={{ color: themeProps.text_color }}>
+          {title}
+        </h1>
+      )}
       {children}
     </div>
   )

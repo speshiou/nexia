@@ -1,8 +1,8 @@
 'use client'
 
 import { useTelegram } from '@/components/webapp/telegram-provider'
-import ListGroup from '@/components/widget/list_group'
-import ListItem from '@/components/widget/list_item'
+import ListGroup from '@/components/widget/ListGroup'
+import ListItem from '@/components/widget/ListItem'
 import Scaffold from '@/components/widget/scaffold'
 import { placeOrder } from '@/lib/actions'
 import { packages } from '@/lib/packages'

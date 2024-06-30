@@ -4,6 +4,7 @@ import { getCustomRole, upsertCustomRole } from '@/lib/actions'
 import { useTelegram } from './webapp/telegram-provider'
 import { FormHTMLAttributes, forwardRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { themeProps } from '@/lib/telegram/constants'
 
 const RoleForm = forwardRef<
   HTMLFormElement,
@@ -28,7 +29,8 @@ const RoleForm = forwardRef<
         <div className="col-span-full">
           <label
             htmlFor="name"
-            className="block text-sm font-medium leading-6 text-gray-900"
+            className="block text-sm font-medium leading-6 "
+            style={{ color: themeProps.text_color }}
           >
             Name
           </label>
@@ -37,7 +39,8 @@ const RoleForm = forwardRef<
               type="text"
               name="name"
               id="name"
-              className="w-full px-4 rounded-md py-2 border-0 ring-1 ring-inset bg-transparent text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+              className="w-full px-4 rounded-md py-2 border-0 ring-1 ring-inset bg-transparent placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+              style={{ color: themeProps.text_color }}
               placeholder="Name of the role"
               defaultValue={data?.name}
             />
@@ -47,7 +50,8 @@ const RoleForm = forwardRef<
         <div className="col-span-full">
           <label
             htmlFor="prompt"
-            className="block text-sm font-medium leading-6 text-gray-900"
+            className="block text-sm font-medium leading-6"
+            style={{ color: themeProps.text_color }}
           >
             Instructions
           </label>
@@ -56,7 +60,8 @@ const RoleForm = forwardRef<
               id="prompt"
               name="prompt"
               rows={3}
-              className="block w-full rounded-md border-0 py-1.5 bg-transparent text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 p-4"
+              className="block w-full rounded-md border-0 py-1.5 bg-transparent shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 p-4"
+              style={{ color: themeProps.text_color }}
               defaultValue={data?.prompt}
               placeholder="Write some instructions on how the chatbot should respond to your requests."
             />

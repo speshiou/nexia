@@ -2,14 +2,15 @@
 
 import { useTelegram } from '@/components/webapp/telegram-provider'
 import LoadingSkeleton from '@/components/widget/LoadingSkeleton'
-import ListGroup from '@/components/widget/list_group'
-import ListItem from '@/components/widget/list_item'
+import ListGroup from '@/components/widget/ListGroup'
+import ListItem from '@/components/widget/ListItem'
 import Scaffold from '@/components/widget/scaffold'
 import { getSettings, updateSettings } from '@/lib/actions'
 import { ModelType, models } from '@/lib/models'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { themeProps } from '@/lib/telegram/constants'
 
 export default function Page() {
   const { initialized, webApp } = useTelegram()
@@ -56,8 +57,13 @@ export default function Page() {
             )
           })}
         </ListGroup>
-        <h2 className="font-bold my-4">Token Consumption</h2>
-        <table className="w-full border-collapse border border-slate-500">
+        <h2 className="font-bold my-4" style={{ color: themeProps.text_color }}>
+          Token Consumption
+        </h2>
+        <table
+          className="w-full border-collapse border border-slate-500"
+          style={{ color: themeProps.text_color }}
+        >
           <thead>
             <tr>
               <th className="border border-slate-600 px-4 py-2">Model</th>
