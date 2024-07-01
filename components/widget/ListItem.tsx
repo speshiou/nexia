@@ -1,4 +1,6 @@
 import { themeProps } from '@/lib/telegram/constants'
+import { ChevronRightIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon } from '@heroicons/react/24/solid'
 import clsx from 'clsx'
 import { Url } from 'next/dist/shared/lib/router/router'
 import Link from 'next/link'
@@ -14,20 +16,21 @@ export default function ListItem({
   trailing,
   //   className,
   onClick,
-  //   hideNavIndicator = false,
+  hideNavIndicator = false,
 }: {
   title: string | React.ReactNode
   subtitle?: string
   leading?: React.ReactNode
   trailing?: React.ReactNode | string
   to?: Url
-  selectionMode?: 'check' | 'none'
+  selectionMode?: 'check' | 'none' | 'circle'
   selected?: boolean
+  hideNavIndicator?: boolean
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void
 }) {
   const checkIcon = selected ? (
     <svg
-      style={{ color: `var(--tg-theme-button-color)` }}
+      style={{ color: themeProps.accent_text_color }}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -42,11 +45,26 @@ export default function ListItem({
       />
     </svg>
   ) : null
+  const selectedIcon = (
+    <CheckCircleIcon
+      className="w-4 h-4"
+      style={{ color: themeProps.accent_text_color }}
+    />
+  )
+  const leadingIcon = (
+    <div
+      className="w-4 h-4 border rounded-xl"
+      style={{ borderColor: themeProps.subtitle_text_color }}
+    ></div>
+  )
+  if (selectionMode == 'circle') {
+    leading = selected ? selectedIcon : leadingIcon
+  }
 
-  //   const leadingWrap = leading ? <div className="me-3">{leading}</div> : null
+  const leadingWrap = leading ? <div className="me-3">{leading}</div> : null
   const body = (
     <>
-      {/* {leadingWrap} */}
+      {leadingWrap}
       <div className="flex-1">
         <div style={{ color: themeProps.text_color }}>{title}</div>
         {subtitle && (
@@ -59,7 +77,7 @@ export default function ListItem({
         <>
           <span
             className="ms-2"
-            style={{ color: `var(--tg-theme-link-color)` }}
+            style={{ color: themeProps.accent_text_color }}
           >
             {trailing}
           </span>
@@ -67,9 +85,12 @@ export default function ListItem({
       )}
       {/* {badge && <span className="badge bg-primary rounded-pill">{badge}</span>} */}
       {selectionMode == 'check' && checkIcon}
-      {/* {to && !to.startsWith('http') && !hideNavIndicator && (
-        <i className="bi bi-chevron-right text-secondary"></i>
-      )} */}
+      {to && !to.toString().startsWith('http') && !hideNavIndicator && (
+        <ChevronRightIcon
+          className="w-4 h-4"
+          style={{ color: themeProps.subtitle_text_color }}
+        />
+      )}
     </>
   )
 

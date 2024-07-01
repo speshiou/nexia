@@ -8,6 +8,7 @@ import { getCustomRoles, getSettings, updateSettings } from '@/lib/actions'
 import { MAX_ROLE_LIMIT } from '@/lib/constants'
 import { roles } from '@/lib/roles'
 import { themeProps } from '@/lib/telegram/constants'
+import { CheckCircleIcon } from '@heroicons/react/24/solid'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import Link from 'next/link'
@@ -63,12 +64,13 @@ export default function Page() {
         <ListGroup title="Custom">
           {!customRoles?.length && <ListItem title={'No custom roles yet'} />}
           {customRoles?.map((role) => {
+            const selected = settings?.current_chat_mode == role.id
             return (
               <ListItem
                 key={role.id}
                 title={role.name}
-                selectionMode="check"
-                selected={settings?.current_chat_mode == role.id}
+                selectionMode="circle"
+                selected={selected}
                 onClick={(e) => handleSelection(e, role.id)}
                 trailing={
                   <Link
@@ -98,12 +100,13 @@ export default function Page() {
         </ListGroup>
         <ListGroup title="System">
           {Object.values(roles).map((role) => {
+            const selected = settings?.current_chat_mode == role.id
             return (
               <ListItem
                 key={role.id}
                 title={role.name}
-                selectionMode="check"
-                selected={settings?.current_chat_mode == role.id}
+                selectionMode="circle"
+                selected={selected}
                 onClick={(e) => handleSelection(e, role.id)}
               />
             )

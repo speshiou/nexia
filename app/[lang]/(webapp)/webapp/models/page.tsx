@@ -50,7 +50,7 @@ export default function Page() {
                 key={model.id}
                 title={model.title}
                 subtitle={model.caption}
-                selectionMode="check"
+                selectionMode="circle"
                 selected={data?.current_model == model.id}
                 onClick={(e) => handleSelection(e, model.id as ModelType)}
               />

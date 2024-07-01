@@ -40,7 +40,7 @@ export default function Page() {
               <ListItem
                 key={locale.id}
                 title={locale.title}
-                selectionMode="check"
+                selectionMode="circle"
                 selected={data?.preferred_lang == locale.id}
                 onClick={(e) => handleSelection(e, locale.id as Locale)}
               />

@@ -68,7 +68,7 @@ const RoleForm = forwardRef<
           </div>
           <p className="mt-3 text-xs">
             <a
-              style={{ color: `var(--tg-theme-link-color)` }}
+              style={{ color: themeProps.link_color }}
               href={'https://github.com/f/awesome-chatgpt-prompts#prompts'}
               target="blank"
             >

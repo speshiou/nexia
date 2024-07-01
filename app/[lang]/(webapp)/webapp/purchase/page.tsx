@@ -40,33 +40,33 @@ export default function Page() {
       }}
     >
       <div>
-        <ListGroup>
+        <ListGroup title="Packages">
           {packages.map((p, i) => {
             return (
               <ListItem
                 key={p.tokens_amount.toLocaleString()}
                 title={`+${p.tokens_amount.toLocaleString()}`}
-                trailing={p.payment_amount.toLocaleString()}
-                selectionMode="check"
+                trailing={`$${p.payment_amount.toLocaleString()}`}
+                selectionMode="circle"
                 selected={packageIndex == i}
                 onClick={(e) => setPackageIndex(i)}
               />
             )
           })}
         </ListGroup>
-        <ListGroup>
+        <ListGroup title="Payment Methods">
           <ListItem
             title="Credit and Debit Cards"
-            selectionMode="check"
+            selectionMode="circle"
             selected={paymentMethod == 'paypal'}
             onClick={(e) => setPaymentMethod('paypal')}
           />
-          <ListItem
+          {/* <ListItem
             title="Cryptocurrency"
-            selectionMode="check"
+            selectionMode="circle"
             selected={paymentMethod == 'crypto'}
             onClick={(e) => setPaymentMethod('crypto')}
-          />
+          /> */}
         </ListGroup>
       </div>
     </Scaffold>
