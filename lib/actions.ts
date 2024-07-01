@@ -46,6 +46,7 @@ import {
   updateRole,
 } from './db/roles'
 import { MAX_ROLE_LIMIT } from './constants'
+import { verifyAuthData } from './telegram/auth'
 
 type DiffusersInputs = {
   prompt: string
@@ -58,9 +59,15 @@ type DiffusersInputs = {
 }
 
 export async function getAuthUser(initData: string) {
+  const searchParams = new URLSearchParams(initData)
+  const params = Object.fromEntries(searchParams)
+  const telegramUser = verifyAuthData(
+    process.env.TELEGRAM_BOT_API_TOKEN!,
+    params,
+  )
   return {
-    id: 713277695,
-    from: 'chatgpt_tg_devbot',
+    id: telegramUser.id,
+    from: process.env.TELEGRAM_BOT_NAME!,
   }
 }
 
