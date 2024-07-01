@@ -1,6 +1,8 @@
+import Notice from '@/components/notice'
 import ListGroup from '@/components/widget/ListGroup'
 import ListItem from '@/components/widget/ListItem'
 import Scaffold from '@/components/widget/scaffold'
+import { InformationCircleIcon } from '@heroicons/react/24/outline'
 
 export default async function Page() {
   return (
@@ -12,6 +14,12 @@ export default async function Page() {
           title="@gemini_vision_bot"
         />
       </ListGroup>
+      <Notice
+        className="mt-8"
+        leading={<InformationCircleIcon className="w-6 h-6" />}
+      >
+        {'All bots use the same account balance.'}
+      </Notice>
     </Scaffold>
   )
 }

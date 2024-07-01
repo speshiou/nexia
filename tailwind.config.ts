@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import { themeProps } from './lib/telegram/constants'
 
 const config: Config = {
   content: [
@@ -14,7 +15,9 @@ const config: Config = {
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       colors: {
-        'tg-divider': 'var(--tg-theme-secondary-bg-color)',
+        'tg-divider': themeProps.secondary_bg_color,
+        'tg-accent': themeProps.accent_text_color,
+        'tg-secondary': themeProps.subtitle_text_color,
       },
     },
   },

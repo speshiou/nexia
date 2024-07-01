@@ -4,6 +4,7 @@ import RoleForm from '@/components/RoleForm'
 import { useTelegram } from '@/components/webapp/telegram-provider'
 import Scaffold from '@/components/widget/scaffold'
 import { deleteCustomRole, upsertCustomRole } from '@/lib/actions'
+import { themeProps } from '@/lib/telegram/constants'
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 
@@ -71,7 +72,10 @@ export default function Page({
     >
       <RoleForm ref={formRef} initialRoleId={params.roleId} />
       <div className="text-center p-4">
-        <button className="text-red-600" onClick={handleDelete}>
+        <button
+          style={{ color: themeProps.destructive_text_color }}
+          onClick={handleDelete}
+        >
           Delete
         </button>
       </div>
