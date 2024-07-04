@@ -295,7 +295,7 @@ async function createInvoice(
 
 export async function finishOrder(orderId: string) {
   const order = await getOrder(orderId)
-  if (!order) {
+  if (!order || order.telegram_bot_name != process.env.TELEGRAM_BOT_NAME) {
     return
   }
   if (order.status === 'finished') {
@@ -307,7 +307,6 @@ export async function finishOrder(orderId: string) {
   if (!updated) {
     return
   }
-  await updateOrder(orderId, { status: 'finished' })
   try {
     await updateOrder(orderId, { status: 'finished' })
 

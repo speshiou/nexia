@@ -1,6 +1,6 @@
 'use server'
 
-import { ObjectId } from 'mongodb'
+import { Filter, ObjectId } from 'mongodb'
 import { TelegramUser } from '@/types/telegram'
 import { CogPredictionResult } from '@/app/webhook/prediction/route'
 import {
@@ -115,11 +115,14 @@ export async function updateOrder(
   orderId: string,
   data: Pick<Order, 'invoice_id' | 'invoice_url' | 'expire_time' | 'status'>,
 ): Promise<number> {
+  const filter: Filter<Order> = {
+    _id: new ObjectId(orderId),
+  }
+  if (data.status == 'finished') {
+    filter.status = 'pending'
+  }
   const orders = await getOrderCollection()
-  const updateResult = await orders.updateOne(
-    { _id: new ObjectId(orderId) },
-    { $set: data },
-  )
+  const updateResult = await orders.updateOne(filter, { $set: data })
 
   return updateResult.modifiedCount
 }

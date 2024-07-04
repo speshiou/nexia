@@ -61,7 +61,7 @@ interface Order {
   total_price: number
   currency: string
   create_time: Date
-  status: string
+  status: 'created' | 'pending' | 'finished'
   referred_by?: string
   commission_rate?: number
   commission?: number
