@@ -75,9 +75,34 @@ export async function getSettings(initData: string) {
   const authUser = await getAuthUser(initData)
   const chat = await getChat(authUser.from, authUser.id)
   const user = await getUserData(authUser.id)
+  const customRoles = await getRoles(authUser.id)
+  const customRolesCache = customRoles.reduce<{
+    [id: string]: { title: string }
+  }>((prev, curr) => {
+    prev[curr._id.toString()] = {
+      title: curr.name,
+    }
+    return prev
+  }, {})
+  const rolesCache: { [id: string]: { name: string } } = {
+    ...roles,
+    ...customRolesCache,
+  }
+
+  const currentRoleId = sanitizeStringOption(
+    Object.keys(roles),
+    chat?.current_chat_mode,
+    defaultRoleId,
+  ) as string
+
+  const currentRole = {
+    id: currentRoleId,
+    name: rolesCache[currentRoleId].name,
+  }
+
   const settings = {
     current_model: sanitizeStringOption(
-      Object.keys(models),
+      Object.keys(rolesCache),
       chat?.current_model,
       defaultModelId,
     ) as ModelType,
@@ -87,12 +112,8 @@ export async function getSettings(initData: string) {
       defaultLocaleId,
     ) as Locale,
     remaining_tokens: user ? user!.total_tokens - user!.used_tokens : 0,
-    current_chat_mode: sanitizeStringOption(
-      Object.keys(roles),
-      chat?.current_chat_mode,
-      defaultRoleId,
-    ) as string,
-  } satisfies Settings
+    current_chat_mode: currentRole,
+  }
 
   return settings
 }

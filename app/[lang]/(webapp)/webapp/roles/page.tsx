@@ -32,9 +32,7 @@ export default function Page() {
 
   const { data: settings } = useQuery({
     queryKey: ['query_settings'],
-    queryFn: () => {
-      return getSettings(webApp?.initData || '').then((result) => result)
-    },
+    queryFn: () => getSettings(webApp?.initData || ''),
     enabled: initialized,
   })
 
@@ -64,7 +62,7 @@ export default function Page() {
         <ListGroup title="Custom">
           {!customRoles?.length && <ListItem title={'No custom roles yet'} />}
           {customRoles?.map((role) => {
-            const selected = settings?.current_chat_mode == role.id
+            const selected = settings?.current_chat_mode.id == role.id
             return (
               <ListItem
                 key={role.id}
@@ -100,7 +98,7 @@ export default function Page() {
         </ListGroup>
         <ListGroup title="System">
           {Object.values(roles).map((role) => {
-            const selected = settings?.current_chat_mode == role.id
+            const selected = settings?.current_chat_mode.id == role.id
             return (
               <ListItem
                 key={role.id}
