@@ -5,6 +5,7 @@ import {
   getTelegramUser,
   updateJobStatus,
 } from '@/lib/data'
+import { JobStatus } from '@/types/collections'
 import { ObjectId } from 'mongodb'
 
 export const dynamic = 'force-dynamic' // defaults to auto
