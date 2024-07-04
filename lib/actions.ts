@@ -77,10 +77,10 @@ export async function getSettings(initData: string) {
   const user = await getUserData(authUser.id)
   const customRoles = await getRoles(authUser.id)
   const customRolesCache = customRoles.reduce<{
-    [id: string]: { title: string }
+    [id: string]: { name: string }
   }>((prev, curr) => {
     prev[curr._id.toString()] = {
-      title: curr.name,
+      name: curr.name,
     }
     return prev
   }, {})
@@ -90,7 +90,7 @@ export async function getSettings(initData: string) {
   }
 
   const currentRoleId = sanitizeStringOption(
-    Object.keys(roles),
+    Object.keys(rolesCache),
     chat?.current_chat_mode,
     defaultRoleId,
   ) as string
@@ -102,7 +102,7 @@ export async function getSettings(initData: string) {
 
   const settings = {
     current_model: sanitizeStringOption(
-      Object.keys(rolesCache),
+      Object.keys(models),
       chat?.current_model,
       defaultModelId,
     ) as ModelType,
