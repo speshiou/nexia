@@ -7,6 +7,7 @@ import Scaffold from '@/components/widget/scaffold'
 import { placeOrder } from '@/lib/actions'
 import { packages } from '@/lib/packages'
 import { PaymentMethod } from '@/types/types'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function Page() {
@@ -14,6 +15,8 @@ export default function Page() {
   const [packageIndex, setPackageIndex] = useState(0)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('paypal')
   const [processing, setProcessing] = useState(false)
+  const searchParams = useSearchParams()
+  const startedForResult = !!searchParams.get('start_for_result')
 
   async function handleClick() {
     setProcessing(true)
@@ -32,6 +35,7 @@ export default function Page() {
   return (
     <Scaffold
       title="Purchase Tokens"
+      root={startedForResult}
       mainButtonOptions={{
         processing: processing,
         show: true,
