@@ -9,17 +9,15 @@ import { themeProps } from '@/lib/telegram/constants'
 const RoleForm = forwardRef<
   HTMLFormElement,
   FormHTMLAttributes<HTMLFormElement> & { initialRoleId?: string }
->((props, ref) => {
+>(function RoleForm(props, ref) {
   const { initialized, webApp } = useTelegram()
 
   const { isPending, error, data } = useQuery({
     queryKey: ['get_role', initialized],
-    queryFn: () => {
-      return getCustomRole(props.initialRoleId!, webApp?.initData || '').then(
-        (result) => result,
-      )
+    queryFn: async () => {
+      return await getCustomRole(props.initialRoleId!, webApp?.initData || '')
     },
-    enabled: !!props.initialRoleId,
+    enabled: initialized && !!props.initialRoleId,
   })
 
   return (
