@@ -38,7 +38,7 @@ export default function Page() {
 
   const searchParams = useSearchParams()
 
-  const startedForResult = searchParams.get('start_for_result')
+  const startedForResult = !!searchParams.get('start_for_result')
 
   async function handleSelection(e: React.MouseEvent, option: string) {
     e.stopPropagation()
@@ -54,7 +54,7 @@ export default function Page() {
   }
 
   return (
-    <Scaffold title="Role">
+    <Scaffold title="Role" root={startedForResult}>
       <p style={{ color: themeProps.hint_color }}>
         {'Tailor the chatbot to better meet your needs.'}
       </p>

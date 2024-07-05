@@ -25,7 +25,7 @@ export default function Page() {
   })
 
   const searchParams = useSearchParams()
-  const startedForResult = searchParams.get('start_for_result')
+  const startedForResult = !!searchParams.get('start_for_result')
 
   async function handleSelection(e: React.MouseEvent, option: ModelType) {
     e.stopPropagation()
@@ -41,7 +41,7 @@ export default function Page() {
   }
 
   return (
-    <Scaffold title="AI Model">
+    <Scaffold title="AI Model" root={startedForResult}>
       <div className={clsx({ 'animate-pulse': isPending })}>
         <ListGroup>
           {Object.values(models).map((model) => {
