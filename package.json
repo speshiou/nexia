@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "i18n": "i18next-scanner"
+    "i18n": "node bin/i18n.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.7.0",
