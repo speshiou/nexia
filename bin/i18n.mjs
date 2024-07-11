@@ -69,3 +69,22 @@ export default dict
 for (const locale of supportedLangCodes) {
   generate(locale)
 }
+
+function generateDicts() {
+  let dictText = supportedLangCodes
+    .map((locale) => {
+      return `  "${locale}": async () => (await import('./${locale}')).default,`
+    })
+    .join('\n')
+
+  let content = `
+const dictionaries = {
+${dictText}
+}
+
+export default dictionaries
+      `
+  fs.writeFileSync(path.join(OUTPUT_DIR, 'resources.ts'), content)
+}
+
+generateDicts()
