@@ -36,7 +36,6 @@ import { Locale, defaultLocaleId, locales } from './locales'
 import { RoleData, defaultRoleId, roles } from './roles'
 import { TokenPack, packages } from './packages'
 import { InvoiceItem, PayPal } from './paypal'
-import { _ } from './i18n'
 import {
   Role,
   createRole,

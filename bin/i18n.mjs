@@ -3,8 +3,13 @@ import path from 'path'
 import supportedLocales from '../locales.json' with { type: 'json' }
 const supportedLangCodes = Object.keys(supportedLocales)
 import base from '../dictionaries/base.mjs'
+import { v2, v3 } from '@google-cloud/translate'
 
 const OUTPUT_DIR = 'dictionaries'
+
+const translate = new v2.Translate({
+  projectId: process.env.GCP_PROJECT_ID,
+})
 
 let props = []
 for (const key of Object.keys(base)) {
@@ -27,8 +32,16 @@ ${props.join('\n')}
 
 fs.writeFileSync(path.join(OUTPUT_DIR, 'types.d.ts'), typeContent)
 
-function translate(text, sourceLocale, targetLocale) {
-  return text
+async function trans(text, sourceLocale, targetLocale) {
+  if (sourceLocale == targetLocale) {
+    return text
+  }
+  let [translations] = await translate.translate(text, {
+    from: sourceLocale,
+    to: targetLocale,
+  })
+  translations = Array.isArray(translations) ? translations : [translations]
+  return translations[0]
 }
 
 function findUniqueTags(text) {
@@ -43,17 +56,17 @@ function findUniqueTags(text) {
   return Array.from(uniqueTags)
 }
 
-function generate(locale) {
-  const propsText = Object.entries(base)
-    .map(([key, value]) => {
-      const tags = findUniqueTags(value)
-      const translatedString = translate(value)
-      if (tags) {
-        return `  ${key}: (args: { ${tags.map((tag) => `${tag}: string`).join(', ')} }) => replaceArgs(\`${translatedString}\`, args),`
-      }
-      return `  ${key}: \`${translatedString}\`,`
-    })
-    .join('\n')
+async function generate(locale) {
+  console.log(`generating ${locale} ...`)
+  const tasks = Object.entries(base).map(async ([key, value]) => {
+    const tags = findUniqueTags(value)
+    const translatedString = await trans(value, 'en', locale)
+    if (tags) {
+      return `  ${key}: (args: { ${tags.map((tag) => `${tag}: string`).join(', ')} }) => replaceArgs(\`${translatedString}\`, args),`
+    }
+    return `  ${key}: \`${translatedString}\`,`
+  })
+  const propsText = (await Promise.all(tasks)).join('\n')
   let content = `
 import { replaceArgs } from './i18n'
 
@@ -64,10 +77,6 @@ ${propsText}
 export default dict
 `
   fs.writeFileSync(path.join(OUTPUT_DIR, `${locale}.ts`), content)
-}
-
-for (const locale of supportedLangCodes) {
-  generate(locale)
 }
 
 function generateDicts() {
@@ -88,3 +97,7 @@ export default dictionaries
 }
 
 generateDicts()
+
+Promise.all(supportedLangCodes.map((locale) => generate(locale)))
+  .then(() => {})
+  .catch((e) => console.log(e))
