@@ -189,37 +189,37 @@ export async function placeOrder(
 
   const invoice = await createInvoice(orderId.toString(), pack, paymentMethod)
   if (invoice) {
-    let text = _('📋 <b>Your invoice</b>:\n\n')
+    let text = '📋 <b>Your invoice</b>:\n\n'
     text += `${pack.tokens_amount.toLocaleString()} tokens\n`
     text += '------------------\n'
     text += `$${pack.payment_amount.toFixed(2)}\n\n\n`
 
-    text += _('💡 <b>Tips</b>:\n')
+    text += '💡 <b>Tips</b>:\n'
 
     let tips: string[] = []
     let button_text = ''
 
     if (paymentMethod === 'paypal') {
       tips.push(
-        _(
-          'If you do not have a PayPal account, click on the button located below the login button to pay with cards directly.',
-        ),
+        'If you do not have a PayPal account, click on the button located below the login button to pay with cards directly.',
       )
-      button_text = _('💳 Pay with Debit or Credit Card')
+      button_text = '💳 Pay with Debit or Credit Card'
     } else if (paymentMethod === 'crypto') {
       tips.push(
-        _(
-          'If you have any issues related to crypto payment, please contact the customer service in the payment page, or send messages to {} directly for assistance.',
-        ).replace('{}', '@cryptomus_support'),
+        'If you have any issues related to crypto payment, please contact the customer service in the payment page, or send messages to {} directly for assistance.'.replace(
+          '{}',
+          '@cryptomus_support',
+        ),
       )
-      button_text = _('💎 Pay with Crypto')
+      button_text = '💎 Pay with Crypto'
     }
 
-    tips.push(_('Tokens will be credited within 10 minutes of payment.'))
+    tips.push('Tokens will be credited within 10 minutes of payment.')
     tips.push(
-      _(
-        'Please contact @{} if tokens are not received after 1 hour of payment.',
-      ).replace('{}', 'nexia_support'),
+      'Please contact @{} if tokens are not received after 1 hour of payment.'.replace(
+        '{}',
+        'nexia_support',
+      ),
     )
 
     text += tips.map((s) => `• ${s}`).join('\n\n')

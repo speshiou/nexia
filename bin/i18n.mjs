@@ -3,11 +3,11 @@ import path from 'path'
 import supportedLocales from '../locales.json' with { type: 'json' }
 const supportedLangCodes = Object.keys(supportedLocales)
 import base from '../dictionaries/base.mjs'
-import { v2, v3 } from '@google-cloud/translate'
+import { TranslationServiceClient } from '@google-cloud/translate'
 
 const OUTPUT_DIR = 'dictionaries'
 
-const translate = new v2.Translate({
+const translationClient = new TranslationServiceClient({
   projectId: process.env.GCP_PROJECT_ID,
 })
 
@@ -36,12 +36,15 @@ async function trans(text, sourceLocale, targetLocale) {
   if (sourceLocale == targetLocale) {
     return text
   }
-  let [translations] = await translate.translate(text, {
-    from: sourceLocale,
-    to: targetLocale,
+  let [response] = await translationClient.translateText({
+    parent: `projects/${process.env.GCP_PROJECT_ID}/locations/us-central1`,
+    contents: [text],
+    mimeType: 'text/plain',
+    sourceLanguageCode: sourceLocale,
+    targetLanguageCode: targetLocale,
   })
-  translations = Array.isArray(translations) ? translations : [translations]
-  return translations[0]
+
+  return response.translations[0].translatedText
 }
 
 function findUniqueTags(text) {

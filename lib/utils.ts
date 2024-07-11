@@ -1,4 +1,6 @@
+import dictionaries from '@/dictionaries/resources'
 import { ChatSetting, PaymentMethod } from '@/types/types'
+import { Locale } from './locales'
 
 export const escapeHtml = (unsafe: string) => {
   return unsafe
@@ -51,4 +53,11 @@ export function deleteKey<T extends object, K extends keyof T>(
   key: K,
 ): void {
   delete obj[key]
+}
+
+export async function getDict(locale: string) {
+  if (!dictionaries.hasOwnProperty(locale)) {
+    locale = 'en'
+  }
+  return await dictionaries[locale as Locale]()
 }

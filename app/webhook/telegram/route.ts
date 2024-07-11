@@ -1,8 +1,4 @@
-import { upsertTelegramUser } from '@/lib/data'
-import TelegramApi, { InlineKeyboardMarkup } from '@/lib/telegram/api'
 import bot from '@/lib/telegrambot'
-import { webAppUrl } from '@/lib/utils'
-import { WebhookUpdate } from '@/types/telegram'
 
 export const dynamic = 'force-dynamic' // defaults to auto
 
@@ -15,6 +11,7 @@ export async function POST(request: Request) {
     request.headers.get('X-Telegram-Bot-Api-Secret-Token') !=
     process.env.TELEGRAM_WEBHOOK_SECRET_TOKEN
   ) {
+    console.warn('Invalid secret token')
     return Response.json({ status: 'INVALID' })
   }
   const update = await request.json()
