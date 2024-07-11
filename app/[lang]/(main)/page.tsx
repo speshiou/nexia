@@ -1,6 +1,3 @@
-import { getLocalizedText } from '@/lib/i18n'
-import Image from 'next/image'
-
 export default async function Page({
   params,
 }: Readonly<{
@@ -8,7 +5,6 @@ export default async function Page({
     lang: string
   }
 }>) {
-  const _ = await getLocalizedText(params.lang)
   return (
     <main>
       <div className="mx-auto max-w-2xl">
