@@ -72,6 +72,16 @@ export async function getAuthUser(initData: string) {
   }
 }
 
+export async function resolveModel(model: string): Promise<ModelType> {
+  if (process.env.GENAI_MODEL) {
+    model = process.env.GENAI_MODEL
+  }
+  if (model in models) {
+    return model as ModelType
+  }
+  return defaultModelId
+}
+
 export async function resolveRole(
   userId: number,
   roleId: string,
@@ -115,11 +125,7 @@ export async function getSettings(initData: string) {
   const user = await getUserData(authUser.id)
 
   const settings = {
-    current_model: sanitizeStringOption(
-      Object.keys(models),
-      chat?.current_model,
-      defaultModelId,
-    ) as ModelType,
+    current_model: await resolveModel(chat!.current_model),
     preferred_lang: sanitizeStringOption(
       Object.keys(locales),
       chat?.preferred_lang,
