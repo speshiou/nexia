@@ -1,6 +1,7 @@
 export type RoleData = {
   id: string
   name: string
+  prompt?: string
 }
 
 export const roles = {

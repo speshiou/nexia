@@ -9,7 +9,7 @@ import {
   incUserUsedTokens,
 } from './data'
 import genAI, { trimHistory } from './gen/genai'
-import { upsertTelegramUser } from './actions'
+import { resolveRole, upsertTelegramUser } from './actions'
 import { User } from '@/types/collections'
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN || '')
@@ -81,9 +81,10 @@ bot.on(message('text'), async (ctx) => {
     return
   }
   console.log(user)
-  console.log(chat)
+
   const model = 'gemini'
-  const systemPrompt = ''
+  const role = await resolveRole(user._id, chat.current_chat_mode, true)
+  const systemPrompt = role.prompt || ''
   const newMessage = ctx.message.text
   const ai = genAI[model]
   let numProcessedImage = 0
@@ -134,6 +135,7 @@ bot.on(message('text'), async (ctx) => {
 
   // generate
   const { answer, completionTokens } = await ai.generateText({
+    systemPrompt: systemPrompt,
     newMessage: {
       text: newMessage,
       image: base64Image,

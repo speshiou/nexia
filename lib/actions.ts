@@ -72,34 +72,47 @@ export async function getAuthUser(initData: string) {
   }
 }
 
-export async function getSettings(initData: string) {
-  const authUser = await getAuthUser(initData)
-  const chat = await upsertChat(authUser.from, authUser.id, {})
-  const user = await getUserData(authUser.id)
-  const customRoles = await getRoles(authUser.id)
+export async function resolveRole(
+  userId: number,
+  roleId: string,
+  details: boolean = false,
+) {
+  const customRoles = await getRoles(userId, details)
   const customRolesCache = customRoles.reduce<{
-    [id: string]: { name: string }
+    [id: string]: RoleData
   }>((prev, curr) => {
     prev[curr._id.toString()] = {
+      id: curr._id.toString(),
       name: curr.name,
+      prompt: curr.prompt,
     }
     return prev
   }, {})
-  const rolesCache: { [id: string]: { name: string } } = {
+  const rolesCache: { [id: string]: RoleData } = {
     ...roles,
     ...customRolesCache,
   }
 
   const currentRoleId = sanitizeStringOption(
     Object.keys(rolesCache),
-    chat?.current_chat_mode,
+    roleId,
     defaultRoleId,
   ) as string
 
-  const currentRole = {
+  const role = rolesCache[currentRoleId]
+
+  const currentRole: RoleData = {
     id: currentRoleId,
-    name: rolesCache[currentRoleId].name,
+    name: role.name,
+    prompt: role.prompt,
   }
+  return currentRole
+}
+
+export async function getSettings(initData: string) {
+  const authUser = await getAuthUser(initData)
+  const chat = await upsertChat(authUser.from, authUser.id, {})
+  const user = await getUserData(authUser.id)
 
   const settings = {
     current_model: sanitizeStringOption(
@@ -113,7 +126,10 @@ export async function getSettings(initData: string) {
       defaultLocaleId,
     ) as Locale,
     remaining_tokens: user ? user!.total_tokens - user!.used_tokens : 0,
-    current_chat_mode: currentRole,
+    current_chat_mode: await resolveRole(
+      authUser!.id,
+      chat?.current_chat_mode || defaultRoleId,
+    ),
   }
 
   return settings
@@ -146,11 +162,18 @@ export async function upsertTelegramUser(cxt: Context) {
   return user
 }
 
-export async function getCustomRoles(initData: string) {
+export async function getCustomRoles(
+  initData: string,
+  details: boolean = false,
+) {
   const authUser = await getAuthUser(initData)
-  const roles = await getRoles(authUser.id)
+  const roles = await getRoles(authUser.id, details)
   return roles.map((entry) => {
-    return { id: entry._id.toString(), name: entry.name } satisfies RoleData
+    return {
+      id: entry._id.toString(),
+      name: entry.name,
+      prompt: entry.prompt,
+    } satisfies RoleData
   })
 }
 

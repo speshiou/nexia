@@ -237,10 +237,16 @@ export async function updateChat(
       delete data[key as ChatSetting]
     }
   }
+
+  if (data.current_chat_mode) {
+    // clear history when the chat mode changed
+    ;(data as Chat).history = []
+  }
+
   const chats = await getChatCollection()
   const updateResult = await chats.updateOne(
     {
-      _id: `${botName}_${chatId}`,
+      _id: buildChatId(botName, chatId),
     } as any,
     { $set: data },
   )
