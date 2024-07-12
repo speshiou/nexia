@@ -1,5 +1,5 @@
 import { Message } from '@/types/collections'
-import { Content, ModelParams, VertexAI } from '@google-cloud/vertexai'
+import { Content, ModelParams, Part, VertexAI } from '@google-cloud/vertexai'
 import { GenAIArgs } from './genai'
 
 export function buildHistory(history: Message[]) {
@@ -39,7 +39,17 @@ export async function generateText(args: GenAIArgs) {
 
   const generativeModel = vertexAI.getGenerativeModel(params)
 
-  contents.push({ role: 'user', parts: [{ text: args.newMessage.text }] })
+  const parts: Part[] = [{ text: args.newMessage.text }]
+  if (args.newMessage.image) {
+    parts.push({
+      inlineData: {
+        data: args.newMessage.image,
+        mimeType: 'image/jpeg',
+      },
+    })
+  }
+
+  contents.push({ role: 'user', parts: parts })
 
   const resp = await generativeModel.generateContent({
     contents: contents,

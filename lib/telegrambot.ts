@@ -1,4 +1,5 @@
 import { Context, Markup, Telegraf } from 'telegraf'
+import { Message } from 'telegraf/types'
 import { message } from 'telegraf/filters'
 import { getDict } from './utils'
 import {
@@ -13,14 +14,14 @@ import { User } from '@/types/collections'
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN || '')
 // middleware
-bot.use(async (ctx, next) => {
-  console.time(`Processing update ${ctx.update.update_id}`)
-  await next() // runs next middleware
-  // runs after next middleware finishes
-  await incStats('messages')
-  console.timeEnd(`Processing update ${ctx.update.update_id}`)
-})
 bot
+  .use(async (ctx, next) => {
+    console.time(`Processing update ${ctx.update.update_id}`)
+    await next() // runs next middleware
+    // runs after next middleware finishes
+    await incStats('messages')
+    console.timeEnd(`Processing update ${ctx.update.update_id}`)
+  })
   .start(async (ctx) => {
     const user = await upsertTelegramUser(ctx)
     if (!user) {
@@ -85,15 +86,39 @@ bot.on(message('text'), async (ctx) => {
   const systemPrompt = ''
   const newMessage = ctx.message.text
   const ai = genAI[model]
-  const numProcessedImage = 0
+  let numProcessedImage = 0
+  let base64Image: string | undefined = undefined
 
   // check flood
 
   // check timeout
 
-  // check max tokens
+  // reply to photo
+  if (ctx.message.reply_to_message && 'photo' in ctx.message.reply_to_message) {
+    const photoMessage = ctx.message.reply_to_message as Message.PhotoMessage
+    const photo = photoMessage.photo
+    const photoFileId = photo[photo.length - 1].file_id // Get the largest size photo
+    try {
+      // Get the file information
+      const file = await ctx.telegram.getFile(photoFileId)
+      const filePath = file.file_path
 
-  // check balance
+      // Construct the URL to download the file
+      const photoUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_API_TOKEN}/${filePath}`
+
+      // Use fetch to download the photo
+      const response = await fetch(photoUrl)
+      const arrayBuffer = await response.arrayBuffer()
+      base64Image = Buffer.from(arrayBuffer).toString('base64')
+      numProcessedImage++
+
+      // You can then use this URL to download the photo
+    } catch (error) {
+      console.error('Error retrieving the photo:', error)
+    }
+  }
+
+  // check max tokens
   const { promptTokenCount, trimmedHistory } = trimHistory(
     systemPrompt,
     chat.history,
@@ -101,6 +126,7 @@ bot.on(message('text'), async (ctx) => {
     ai.maxTokens,
   )
 
+  // check balance
   let estimatedCost = Math.floor(promptTokenCount * ai.contextCostFactor)
   if (!(await checkBalance(ctx, user as User, estimatedCost))) {
     return
@@ -110,6 +136,7 @@ bot.on(message('text'), async (ctx) => {
   const { answer, completionTokens } = await ai.generateText({
     newMessage: {
       text: newMessage,
+      image: base64Image,
     },
     history: trimmedHistory,
   })
