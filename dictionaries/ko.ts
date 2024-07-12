@@ -15,6 +15,7 @@ const dict: LocalizedString = {
 👨‍🎨 /image - 텍스트에서 이미지 생성
 
 이 챗봇을 사용하면 <a href="{{terms_link}}">서비스 약관</a> 및 <a href="{{privacy_link}}">개인정보취급방침</a>에 동의하게 됩니다.`, args),
+  currentChatStatusPattern: (args: { role_name: string, mode_name: string }) => replaceArgs(`ℹ️ <i>현재 {{role_name}}({{mode_name}})님과 채팅 중입니다 ... </i>`, args),
   settings: (args: {  }) => replaceArgs(`설정`, args),
 }
 

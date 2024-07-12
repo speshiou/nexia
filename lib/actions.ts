@@ -27,6 +27,7 @@ import TelegramApi from './telegram/api'
 import {
   base64PngPrefix,
   dateStamp,
+  getDict,
   isChatSetting,
   isPaymentMethod,
   sanitizeStringOption,
@@ -179,10 +180,14 @@ export async function updateSettings(
       const model = models[modelId]
       const role = await resolveRole(authUser.id, chat?.current_chat_mode)
 
+      const i18n = await getDict('en')
       const app = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN!)
       await app.telegram.sendMessage(
         authUser.id,
-        `ℹ️ <i>You're now chatting with ${role.name} (${model.title}) ... </i>`,
+        i18n.currentChatStatusPattern({
+          role_name: role.name,
+          mode_name: model.title,
+        }),
         {
           parse_mode: 'HTML',
         },

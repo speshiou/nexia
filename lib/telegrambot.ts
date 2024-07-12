@@ -7,10 +7,13 @@ import {
   incStats,
   pushChatHistory,
   incUserUsedTokens,
+  updateChat,
 } from './data'
 import genAI, { trimHistory } from './gen/genai'
 import { resolveModel, resolveRole, upsertTelegramUser } from './actions'
 import { User } from '@/types/collections'
+import { CHAT_TIMEOUT } from './constants'
+import { models } from './models'
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN || '')
 // middleware
@@ -80,19 +83,44 @@ bot.on(message('text'), async (ctx) => {
   if (!chat) {
     return
   }
-  console.log(user)
+  const i18n = await getDict('en')
 
-  const model = await resolveModel(chat.current_model)
+  const modelId = await resolveModel(chat.current_model)
+  const model = models[modelId]
   const role = await resolveRole(user._id, chat.current_chat_mode, true)
   const systemPrompt = role.prompt || ''
   const newMessage = ctx.message.text
-  const ai = genAI[model]
+  const ai = genAI[modelId]
   let numProcessedImage = 0
   let base64Image: string | undefined = undefined
 
   // check flood
 
   // check timeout
+  const chatTimeDiff = Math.abs(
+    (new Date().getTime() - chat.last_interaction.getTime()) / 1000,
+  )
+  if (chatTimeDiff > CHAT_TIMEOUT) {
+    // clear chat history
+    const result = await updateChat(
+      process.env.TELEGRAM_BOT_NAME!,
+      ctx.chat.id,
+      {
+        history: [],
+      },
+    )
+    if (result) {
+      ctx.sendMessage(
+        i18n.currentChatStatusPattern({
+          role_name: role.name,
+          mode_name: model.title,
+        }),
+        {
+          parse_mode: 'HTML',
+        },
+      )
+    }
+  }
 
   // reply to photo
   if (ctx.message.reply_to_message && 'photo' in ctx.message.reply_to_message) {

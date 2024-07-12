@@ -71,9 +71,8 @@ export async function upsertChat(
     first_interaction: new Date(),
     used_tokens: 0,
     history: [],
+    last_interaction: new Date(),
   }
-
-  data.last_interaction = new Date()
 
   const update = {
     $setOnInsert: defaultData,

@@ -15,6 +15,7 @@ const dict: LocalizedString = {
 👨‍🎨 /image - 從文字產生圖像
 
 使用此聊天機器人即表示您同意我們的<a href="{{terms_link}}">服務條款</a>和<a href="{{privacy_link}}">隱私權政策</a>。`, args),
+  currentChatStatusPattern: (args: { role_name: string, mode_name: string }) => replaceArgs(`ℹ️ <i>您現在正在與 {{role_name}} ({{mode_name}}) 聊天...</i>`, args),
   settings: (args: {  }) => replaceArgs(`設定`, args),
 }
 
