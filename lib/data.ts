@@ -71,6 +71,30 @@ export async function getUserData(userId: number) {
   } as any)
 }
 
+export async function upsertUser(userId: number, data: Partial<User>) {
+  const defaultData: Partial<User> = {
+    last_interaction: new Date(),
+    first_seen: new Date(),
+    used_tokens: 0,
+    total_tokens: 100000,
+    referred_count: 0,
+  }
+
+  const query = { _id: userId }
+  const update = {
+    $setOnInsert: defaultData,
+    $set: data,
+  }
+
+  const collection = await getUserCollection()
+  const result = await collection.findOneAndUpdate(query, update, {
+    upsert: true,
+    returnDocument: 'after',
+  })
+
+  return result
+}
+
 export async function insertOrder(
   userId: number,
   telegram_bot_name: string,
@@ -311,7 +335,7 @@ export async function createJob(job: Job) {
         // TODO: create boundary for jobs
         jobs: newJobId,
       },
-    },
+    } as any,
   )
   return newJobId
 }

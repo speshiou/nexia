@@ -19,6 +19,7 @@ import {
   getOrder,
   topUp,
   updateChat,
+  upsertUser,
 } from './data'
 import { upload } from './gcs'
 import TelegramApi from './telegram/api'
@@ -46,6 +47,7 @@ import {
 } from './db/roles'
 import { MAX_ROLE_LIMIT } from './constants'
 import { verifyAuthData } from './telegram/auth'
+import { Context } from 'telegraf'
 
 type DiffusersInputs = {
   prompt: string
@@ -123,6 +125,24 @@ export async function updateSettings(
 ) {
   const authUser = await getAuthUser(initData)
   await updateChat(authUser.from, authUser.id, settings)
+}
+
+export async function upsertTelegramUser(cxt: Context) {
+  const telegramUser = cxt.message?.from || cxt.editedMessage?.from
+  if (!telegramUser) {
+    return null
+  }
+
+  if (cxt.chat?.type == 'channel') {
+    return null
+  }
+
+  const user = await upsertUser(telegramUser.id, {
+    username: telegramUser.username,
+    first_name: telegramUser.first_name,
+    last_name: telegramUser.last_name,
+  })
+  return user
 }
 
 export async function getCustomRoles(initData: string) {
