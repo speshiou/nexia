@@ -1,4 +1,4 @@
-import { Context, Telegraf } from 'telegraf'
+import { Context, Markup, Telegraf } from 'telegraf'
 import { message } from 'telegraf/filters'
 import { getDict } from './utils'
 import {
@@ -20,15 +20,56 @@ bot.use(async (ctx, next) => {
   await incStats('messages')
   console.timeEnd(`Processing update ${ctx.update.update_id}`)
 })
-bot.start(async (cxt) => {
-  const i18n = await getDict('en')
-  await cxt.replyWithHTML(
-    i18n.greeting({
-      privacy_link: 'https://nexia.chat/privacy-policy',
-      terms_link: 'https://nexia.chat/terms-of-service',
-    }),
-  )
-})
+bot
+  .start(async (ctx) => {
+    const user = await upsertTelegramUser(ctx)
+    if (!user) {
+      return
+    }
+    const i18n = await getDict('en')
+    await ctx.replyWithHTML(
+      i18n.greeting({
+        privacy_link: 'https://nexia.chat/privacy-policy',
+        terms_link: 'https://nexia.chat/terms-of-service',
+      }),
+    )
+  })
+  .action('balance', async (ctx) => {
+    const user = await upsertTelegramUser(ctx)
+    if (!user) {
+      return
+    }
+
+    if (ctx.chat?.type !== 'private') {
+      return
+    }
+
+    await ctx.answerCbQuery()
+    console.log('answerCbQuery')
+
+    const remainingTokens = user.total_tokens - user.used_tokens
+
+    let text = `👛 <b>Balance</b>
+
+<b>${remainingTokens.toLocaleString()}</b> tokens left
+<i>You used <b>${user.used_tokens.toLocaleString()}</b> tokens</i>
+
+<b>Tips</b>
+- The longer conversation would spend more tokens
+- /reset to clear history manually`
+
+    const replyMarkup = Markup.inlineKeyboard([
+      Markup.button.webApp(
+        '💎 Get more tokens',
+        `${process.env.WEB_APP_URL}/purchase?start_for_result=1`,
+      ),
+    ])
+
+    await ctx.editMessageText(text, {
+      reply_markup: replyMarkup.reply_markup,
+      parse_mode: 'HTML',
+    })
+  })
 bot.on(message('text'), async (ctx) => {
   const user = await upsertTelegramUser(ctx)
   if (!user) {
@@ -46,6 +87,13 @@ bot.on(message('text'), async (ctx) => {
   const ai = genAI[model]
   const numProcessedImage = 0
 
+  // check flood
+
+  // check timeout
+
+  // check max tokens
+
+  // check balance
   const promptTokenCount = getPromptTokenLength(
     systemPrompt,
     chat.history,
@@ -56,6 +104,7 @@ bot.on(message('text'), async (ctx) => {
     return
   }
 
+  // generate
   const { answer, completionTokens } = await ai.generateText({
     newMessage: {
       text: newMessage,
@@ -68,8 +117,8 @@ bot.on(message('text'), async (ctx) => {
     bot: answer,
     user: newMessage,
     date: new Date(),
-    num_completion_tokens: 0,
-    num_context_tokens: 0,
+    num_context_tokens: promptTokenCount,
+    num_completion_tokens: completionTokens,
   })
 
   const finalCost = Math.floor(
@@ -82,7 +131,28 @@ bot.on(message('text'), async (ctx) => {
 })
 
 async function checkBalance(ctx: Context, user: User, cost: number) {
+  const remainingTokens = user.total_tokens - user.used_tokens
+  if (remainingTokens < cost) {
+    await sendInsufficientTokensWarning(ctx, remainingTokens)
+    return false
+  }
   return true
+}
+
+const sendInsufficientTokensWarning = async (
+  ctx: Context,
+  requiredTokens?: number,
+) => {
+  const replyMarkup = Markup.inlineKeyboard([
+    Markup.button.callback('👛 Check balance', 'balance'),
+  ])
+
+  let text = '⚠️ Insufficient tokens.'
+  if (requiredTokens) {
+    text += ` Require ${requiredTokens.toLocaleString()} tokens to process this message`
+  }
+
+  await ctx.reply(text, { reply_markup: replyMarkup.reply_markup })
 }
 
 export default bot

@@ -128,7 +128,8 @@ export async function updateSettings(
 }
 
 export async function upsertTelegramUser(cxt: Context) {
-  const telegramUser = cxt.message?.from || cxt.editedMessage?.from
+  const telegramUser =
+    cxt.message?.from || cxt.editedMessage?.from || cxt.callbackQuery?.from
   if (!telegramUser) {
     return null
   }
