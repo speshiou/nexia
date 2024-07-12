@@ -7,7 +7,7 @@ import {
   pushChatHistory,
   incUserUsedTokens,
 } from './data'
-import genAI, { getPromptTokenLength } from './gen/genai'
+import genAI, { trimHistory } from './gen/genai'
 import { upsertTelegramUser } from './actions'
 import { User } from '@/types/collections'
 
@@ -45,7 +45,6 @@ bot
     }
 
     await ctx.answerCbQuery()
-    console.log('answerCbQuery')
 
     const remainingTokens = user.total_tokens - user.used_tokens
 
@@ -70,6 +69,7 @@ bot
       parse_mode: 'HTML',
     })
   })
+
 bot.on(message('text'), async (ctx) => {
   const user = await upsertTelegramUser(ctx)
   if (!user) {
@@ -94,11 +94,13 @@ bot.on(message('text'), async (ctx) => {
   // check max tokens
 
   // check balance
-  const promptTokenCount = getPromptTokenLength(
+  const { promptTokenCount, trimmedHistory } = trimHistory(
     systemPrompt,
     chat.history,
     newMessage,
+    ai.maxTokens,
   )
+
   let estimatedCost = Math.floor(promptTokenCount * ai.contextCostFactor)
   if (!(await checkBalance(ctx, user as User, estimatedCost))) {
     return
@@ -109,17 +111,24 @@ bot.on(message('text'), async (ctx) => {
     newMessage: {
       text: newMessage,
     },
-    history: chat?.history || [],
+    history: trimmedHistory,
   })
   await ctx.reply(answer)
 
-  await pushChatHistory(process.env.TELEGRAM_BOT_NAME!, ctx.chat.id, {
-    bot: answer,
-    user: newMessage,
-    date: new Date(),
-    num_context_tokens: promptTokenCount,
-    num_completion_tokens: completionTokens,
-  })
+  const maxHistoryCount = trimmedHistory.length + 1
+
+  await pushChatHistory(
+    process.env.TELEGRAM_BOT_NAME!,
+    ctx.chat.id,
+    {
+      bot: answer,
+      user: newMessage,
+      date: new Date(),
+      num_context_tokens: promptTokenCount,
+      num_completion_tokens: completionTokens,
+    },
+    maxHistoryCount,
+  )
 
   const finalCost = Math.floor(
     promptTokenCount * ai.contextCostFactor +
@@ -127,13 +136,14 @@ bot.on(message('text'), async (ctx) => {
       numProcessedImage * ai.imageInputCostFactor,
   )
 
+  console.log(`finalCost: ${finalCost}`)
   await incUserUsedTokens(user._id, finalCost)
 })
 
 async function checkBalance(ctx: Context, user: User, cost: number) {
   const remainingTokens = user.total_tokens - user.used_tokens
   if (remainingTokens < cost) {
-    await sendInsufficientTokensWarning(ctx, remainingTokens)
+    await sendInsufficientTokensWarning(ctx, cost)
     return false
   }
   return true

@@ -20,6 +20,7 @@ interface GenAI {
   contextCostFactor: number
   completionCostFactor: number
   imageInputCostFactor: number
+  maxTokens: number
 }
 
 const genAI: { [id: string]: GenAI } = {
@@ -34,7 +35,30 @@ const genAI: { [id: string]: GenAI } = {
     contextCostFactor: 3,
     completionCostFactor: 3,
     imageInputCostFactor: 1000,
+    // The actual value is 1M, but a limit was imposed to avoid excessive expenses.
+    maxTokens: 32768,
   },
+}
+
+export function trimHistory(
+  systemPrompt: string,
+  history: Message[],
+  newMessage: string,
+  maxTokens: number,
+) {
+  let promptTokenCount = getPromptTokenLength(systemPrompt, history, newMessage)
+  while (promptTokenCount >= maxTokens) {
+    history = history.slice(1)
+    if (history.length < 1) {
+      break
+    }
+    promptTokenCount = getPromptTokenLength(systemPrompt, history, newMessage)
+  }
+
+  return {
+    promptTokenCount,
+    trimmedHistory: history,
+  }
 }
 
 export function getPromptTokenLength(
