@@ -2,6 +2,7 @@ import { Telegraf } from 'telegraf'
 import { message } from 'telegraf/filters'
 import { getDict } from './utils'
 import { incStats } from './data'
+import genAI from './gen/genai'
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN || '')
 // middleware
@@ -22,7 +23,13 @@ bot.start(async (cxt) => {
   )
 })
 bot.on(message('text'), async (ctx) => {
-  await ctx.reply(`Echo: ${ctx.message.text}`)
+  const answer = await genAI['gemini'].generateText({
+    newMessage: {
+      text: ctx.message.text,
+    },
+    history: [],
+  })
+  await ctx.reply(answer)
 })
 
 export default bot

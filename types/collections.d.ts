@@ -26,6 +26,14 @@ type Job = {
   }
 }
 
+interface Message {
+  user: string
+  bot: string
+  date: Date
+  num_context_tokens: number
+  num_completion_tokens: number
+}
+
 type Chat = {
   context: string | null
   context_src: string | null
@@ -37,6 +45,7 @@ type Chat = {
   rate_limit_start: Date
   current_model: ModelType
   preferred_lang: Locale
+  messages: Message[]
 }
 
 type User = {
