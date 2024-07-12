@@ -1,7 +1,7 @@
 import { Telegraf } from 'telegraf'
 import { message } from 'telegraf/filters'
 import { getDict } from './utils'
-import { incStats } from './data'
+import { upsertChat, incStats, pushChatHistory } from './data'
 import genAI from './gen/genai'
 import { upsertTelegramUser } from './actions'
 
@@ -25,14 +25,25 @@ bot.start(async (cxt) => {
 })
 bot.on(message('text'), async (ctx) => {
   const user = await upsertTelegramUser(ctx)
+  const chat = await upsertChat(process.env.TELEGRAM_BOT_NAME!, ctx.chat.id, {})
   console.log(user)
+  console.log(chat)
+  const newMessage = ctx.message.text
   const answer = await genAI['gemini'].generateText({
     newMessage: {
-      text: ctx.message.text,
+      text: newMessage,
     },
-    history: [],
+    history: chat?.history || [],
   })
   await ctx.reply(answer)
+
+  await pushChatHistory(process.env.TELEGRAM_BOT_NAME!, ctx.chat.id, {
+    bot: answer,
+    user: newMessage,
+    date: new Date(),
+    num_completion_tokens: 0,
+    num_context_tokens: 0,
+  })
 })
 
 export default bot

@@ -7,6 +7,7 @@ import {
   Account,
   Chat,
   Job,
+  Message,
   Order,
   StateKey,
   Stats,
@@ -57,11 +58,75 @@ export async function getStatCollection() {
   return getCollection<Stats>('stats')
 }
 
-export async function getChat(botName: string, chatId: number) {
+export async function buildChatId(botName: string, chatId: number) {
+  return `${botName}_${chatId}`
+}
+
+export async function upsertChat(
+  botName: string,
+  chatId: number,
+  data: Partial<Chat>,
+) {
+  const defaultData: Partial<Chat> = {
+    first_interaction: new Date(),
+    used_tokens: 0,
+    history: [],
+  }
+
+  data.last_interaction = new Date()
+
+  const update = {
+    $setOnInsert: defaultData,
+    $set: data,
+  }
+
   const collection = await getChatCollection()
-  return await collection.findOne({
-    _id: `${botName}_${chatId}`,
-  } as any)
+  const result = await collection.findOneAndUpdate(
+    {
+      _id: buildChatId(botName, chatId),
+    } as any,
+    update,
+    {
+      upsert: true,
+      returnDocument: 'after',
+    },
+  )
+
+  return result
+}
+
+export async function pushChatHistory(
+  botName: string,
+  chatId: number,
+  newMessage: Message,
+  maxMessageCount: number = -1,
+) {
+  const filter = {
+    _id: buildChatId(botName, chatId),
+  }
+  const data = {
+    last_interaction: new Date(),
+  }
+
+  const collection = await getChatCollection()
+  if (maxMessageCount > 0) {
+    collection.updateOne(filter as any, {
+      $set: data,
+      $push: {
+        history: {
+          $each: [newMessage],
+          $slice: -maxMessageCount,
+        },
+      },
+    })
+  } else {
+    collection.updateOne(filter as any, {
+      $set: data,
+      $push: {
+        history: newMessage,
+      },
+    })
+  }
 }
 
 export async function getUserData(userId: number) {
@@ -73,12 +138,13 @@ export async function getUserData(userId: number) {
 
 export async function upsertUser(userId: number, data: Partial<User>) {
   const defaultData: Partial<User> = {
-    last_interaction: new Date(),
     first_seen: new Date(),
     used_tokens: 0,
     total_tokens: 100000,
     referred_count: 0,
   }
+
+  data.last_interaction = new Date()
 
   const query = { _id: userId }
   const update = {

@@ -7,7 +7,7 @@ import {
   consumeGems,
   createJob,
   getUserData,
-  getChat,
+  upsertChat,
   getJobById,
   getTelegramUser,
   issueDailyGems,
@@ -74,7 +74,7 @@ export async function getAuthUser(initData: string) {
 
 export async function getSettings(initData: string) {
   const authUser = await getAuthUser(initData)
-  const chat = await getChat(authUser.from, authUser.id)
+  const chat = await upsertChat(authUser.from, authUser.id, {})
   const user = await getUserData(authUser.id)
   const customRoles = await getRoles(authUser.id)
   const customRolesCache = customRoles.reduce<{

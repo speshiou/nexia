@@ -45,7 +45,7 @@ type Chat = {
   rate_limit_start: Date
   current_model: ModelType
   preferred_lang: Locale
-  messages: Message[]
+  history: Message[]
 }
 
 type User = {
