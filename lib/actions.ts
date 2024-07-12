@@ -20,17 +20,25 @@ import {
   topUp,
   updateChat,
   upsertUser,
+  getChat,
 } from './data'
 import { upload } from './gcs'
 import TelegramApi from './telegram/api'
 import {
   base64PngPrefix,
   dateStamp,
+  isChatSetting,
   isPaymentMethod,
   sanitizeStringOption,
 } from './utils'
 import { ObjectId } from 'mongodb'
-import { ChatSettings, PaymentMethod, Settings, UserMeta } from '@/types/types'
+import {
+  ChatSetting,
+  ChatSettings,
+  PaymentMethod,
+  Settings,
+  UserMeta,
+} from '@/types/types'
 import { Chat, Job, JobStatus } from '@/types/collections'
 import { ModelType, defaultModelId, models } from './models'
 import { Locale, defaultLocaleId, locales } from './locales'
@@ -47,7 +55,7 @@ import {
 } from './db/roles'
 import { MAX_ROLE_LIMIT } from './constants'
 import { verifyAuthData } from './telegram/auth'
-import { Context } from 'telegraf'
+import { Context, Telegraf } from 'telegraf'
 
 type DiffusersInputs = {
   prompt: string
@@ -146,7 +154,41 @@ export async function updateSettings(
   initData: string,
 ) {
   const authUser = await getAuthUser(initData)
-  await updateChat(authUser.from, authUser.id, settings)
+  // sanitize
+  const keys = Object.keys(settings)
+  for (const key of keys) {
+    if (!isChatSetting(key)) {
+      delete settings[key as ChatSetting]
+    }
+  }
+
+  let notify = false
+  if (settings.current_chat_mode) {
+    // clear history when the chat mode changed
+    ;(settings as Chat).history = []
+    notify = true
+  }
+  if (settings.current_model) {
+    notify = true
+  }
+  const result = await updateChat(authUser.from, authUser.id, settings)
+  if (result && notify) {
+    const chat = await getChat(authUser.from, authUser.id)
+    if (chat) {
+      const modelId = await resolveModel(chat?.current_model)
+      const model = models[modelId]
+      const role = await resolveRole(authUser.id, chat?.current_chat_mode)
+
+      const app = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN!)
+      await app.telegram.sendMessage(
+        authUser.id,
+        `ℹ️ <i>You're now chatting with ${role.name} (${model.title}) ... </i>`,
+        {
+          parse_mode: 'HTML',
+        },
+      )
+    }
+  }
 }
 
 export async function upsertTelegramUser(cxt: Context) {

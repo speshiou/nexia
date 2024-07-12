@@ -95,6 +95,13 @@ export async function upsertChat(
   return result
 }
 
+export async function getChat(botName: string, chatId: number) {
+  const collection = await getChatCollection()
+  return await collection.findOne({
+    _id: buildChatId(botName, chatId),
+  } as any)
+}
+
 export async function pushChatHistory(
   botName: string,
   chatId: number,
@@ -228,21 +235,8 @@ export async function updateOrder(
 export async function updateChat(
   botName: string,
   chatId: number,
-  data: Partial<ChatSettings>,
+  data: Partial<Chat>,
 ): Promise<number> {
-  // sanitize
-  const keys = Object.keys(data)
-  for (const key of keys) {
-    if (!isChatSetting(key)) {
-      delete data[key as ChatSetting]
-    }
-  }
-
-  if (data.current_chat_mode) {
-    // clear history when the chat mode changed
-    ;(data as Chat).history = []
-  }
-
   const chats = await getChatCollection()
   const updateResult = await chats.updateOne(
     {
