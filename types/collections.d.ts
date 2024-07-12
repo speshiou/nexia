@@ -76,6 +76,7 @@ interface Stats {
   net_sales?: number
   new_orders?: number
   paid_orders?: number
+  messages?: number
 }
 
 type StateKey = keyof Stats

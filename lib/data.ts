@@ -168,7 +168,7 @@ export async function topUp(
 }
 
 export async function incStats(
-  field: string,
+  field: keyof Stats,
   amount: number = 1,
 ): Promise<void> {
   const today = new Date()
@@ -181,6 +181,7 @@ export async function incStats(
     net_sales: 0,
     new_orders: 0,
     paid_orders: 0,
+    messages: 0,
   }
 
   if (!(field in defaultData)) {
