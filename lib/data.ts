@@ -161,6 +161,14 @@ export async function upsertUser(userId: number, data: Partial<User>) {
   return result
 }
 
+export async function incUserUsedTokens(userId: number, used_token: number) {
+  const collection = await getUserCollection()
+  await collection.updateOne(
+    { _id: userId },
+    { $inc: { used_tokens: used_token } },
+  )
+}
+
 export async function insertOrder(
   userId: number,
   telegram_bot_name: string,

@@ -1,9 +1,15 @@
-import { Telegraf } from 'telegraf'
+import { Context, Telegraf } from 'telegraf'
 import { message } from 'telegraf/filters'
 import { getDict } from './utils'
-import { upsertChat, incStats, pushChatHistory } from './data'
-import genAI from './gen/genai'
+import {
+  upsertChat,
+  incStats,
+  pushChatHistory,
+  incUserUsedTokens,
+} from './data'
+import genAI, { getPromptTokenLength } from './gen/genai'
 import { upsertTelegramUser } from './actions'
+import { User } from '@/types/collections'
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN || '')
 // middleware
@@ -25,11 +31,32 @@ bot.start(async (cxt) => {
 })
 bot.on(message('text'), async (ctx) => {
   const user = await upsertTelegramUser(ctx)
+  if (!user) {
+    return
+  }
   const chat = await upsertChat(process.env.TELEGRAM_BOT_NAME!, ctx.chat.id, {})
+  if (!chat) {
+    return
+  }
   console.log(user)
   console.log(chat)
+  const model = 'gemini'
+  const systemPrompt = ''
   const newMessage = ctx.message.text
-  const answer = await genAI['gemini'].generateText({
+  const ai = genAI[model]
+  const numProcessedImage = 0
+
+  const promptTokenCount = getPromptTokenLength(
+    systemPrompt,
+    chat.history,
+    newMessage,
+  )
+  let estimatedCost = Math.floor(promptTokenCount * ai.contextCostFactor)
+  if (!(await checkBalance(ctx, user as User, estimatedCost))) {
+    return
+  }
+
+  const { answer, completionTokens } = await ai.generateText({
     newMessage: {
       text: newMessage,
     },
@@ -44,6 +71,18 @@ bot.on(message('text'), async (ctx) => {
     num_completion_tokens: 0,
     num_context_tokens: 0,
   })
+
+  const finalCost = Math.floor(
+    promptTokenCount * ai.contextCostFactor +
+      completionTokens * ai.completionCostFactor +
+      numProcessedImage * ai.imageInputCostFactor,
+  )
+
+  await incUserUsedTokens(user._id, finalCost)
 })
+
+async function checkBalance(ctx: Context, user: User, cost: number) {
+  return true
+}
 
 export default bot
