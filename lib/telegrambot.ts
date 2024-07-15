@@ -161,6 +161,8 @@ bot.on(message('text'), async (ctx) => {
     return
   }
 
+  await ctx.sendChatAction('typing')
+
   // generate
   const stream = ai.generateTextStream({
     systemPrompt: systemPrompt,
