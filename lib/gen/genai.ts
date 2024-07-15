@@ -17,6 +17,7 @@ interface GenAI {
   generateText: (
     args: GenAIArgs,
   ) => Promise<{ answer: string; completionTokens: number }>
+  generateTextStream: (args: GenAIArgs) => AsyncGenerator<string, void, unknown>
   contextCostFactor: number
   completionCostFactor: number
   imageInputCostFactor: number
@@ -31,6 +32,10 @@ const genAI: { [id: string]: GenAI } = {
         answer: answer,
         completionTokens: gpt.encoding.encode(answer).length,
       }
+    },
+    generateTextStream: (args) => {
+      const stream = gemini.generateTextStream(args)
+      return stream
     },
     contextCostFactor: 3,
     completionCostFactor: 3,
@@ -59,6 +64,10 @@ export function trimHistory(
     promptTokenCount,
     trimmedHistory: history,
   }
+}
+
+export function getTokenLength(text: string) {
+  return gpt.encoding.encode(text).length
 }
 
 export function getPromptTokenLength(

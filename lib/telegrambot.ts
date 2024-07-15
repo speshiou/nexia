@@ -9,10 +9,10 @@ import {
   incUserUsedTokens,
   updateChat,
 } from './data'
-import genAI, { trimHistory } from './gen/genai'
+import genAI, { getTokenLength, trimHistory } from './gen/genai'
 import { resolveModel, resolveRole, upsertTelegramUser } from './actions'
 import { User } from '@/types/collections'
-import { CHAT_TIMEOUT } from './constants'
+import { CHAT_TIMEOUT, TELEGRAM_MAX_MESSAGE_LENGTH } from './constants'
 import { models } from './models'
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN || '')
@@ -162,7 +162,7 @@ bot.on(message('text'), async (ctx) => {
   }
 
   // generate
-  const { answer, completionTokens } = await ai.generateText({
+  const stream = ai.generateTextStream({
     systemPrompt: systemPrompt,
     newMessage: {
       text: newMessage,
@@ -170,7 +170,103 @@ bot.on(message('text'), async (ctx) => {
     },
     history: trimmedHistory,
   })
-  await ctx.reply(answer)
+
+  let messageChuckIndex = 0
+  let lastMessageChuckIndex = -1
+  let streamLength = 200
+  let streamedLength = 0
+  let answer = ''
+
+  let messageChunk = ''
+  let placeHolder: Message.TextMessage | undefined
+
+  for await (const chunk of stream) {
+    answer += chunk
+
+    messageChuckIndex = Math.floor(answer.length / TELEGRAM_MAX_MESSAGE_LENGTH)
+
+    const startIndex = messageChuckIndex * TELEGRAM_MAX_MESSAGE_LENGTH
+    messageChunk = answer.substring(startIndex)
+
+    if (messageChuckIndex > lastMessageChuckIndex) {
+      if (lastMessageChuckIndex >= 0) {
+        // finsih previous chunk
+        const lastStartIndex =
+          lastMessageChuckIndex * TELEGRAM_MAX_MESSAGE_LENGTH
+        const lastEndIndex =
+          (lastMessageChuckIndex + 1) * TELEGRAM_MAX_MESSAGE_LENGTH
+        const lastMessageChunk = answer.substring(lastStartIndex, lastEndIndex)
+
+        try {
+          await ctx.telegram.editMessageText(
+            ctx.chat.id,
+            placeHolder!.message_id,
+            undefined,
+            lastMessageChunk,
+          )
+        } catch (e) {
+          console.log('failed to close a chunk')
+          continue
+        }
+
+        streamedLength = 0
+      }
+
+      // start a new chunk
+      try {
+        placeHolder = await ctx.reply(`${messageChunk} ...`)
+      } catch (e) {
+        console.log('failed to start a chunk')
+        continue
+      }
+    }
+
+    // flush chunks
+    streamedLength += chunk.length
+    if (streamedLength >= streamLength) {
+      try {
+        await ctx.telegram.editMessageText(
+          ctx.chat.id,
+          placeHolder!.message_id,
+          undefined,
+          messageChunk,
+        )
+      } catch (e) {
+        console.log('failed to stream a chunk')
+      }
+      streamedLength = 0
+    }
+
+    lastMessageChuckIndex = messageChuckIndex
+  }
+
+  // finish answer
+  try {
+    await ctx.telegram.editMessageText(
+      ctx.chat.id,
+      placeHolder!.message_id,
+      undefined,
+      messageChunk,
+      {
+        parse_mode: messageChuckIndex == 0 ? 'Markdown' : undefined,
+      },
+    )
+  } catch (e) {
+    console.log('failed to finish a answer')
+
+    try {
+      await ctx.telegram.editMessageText(
+        ctx.chat.id,
+        placeHolder!.message_id,
+        undefined,
+        messageChunk,
+      )
+    } catch (e) {
+      console.log('failed to finish a answer with text format')
+    }
+  }
+
+  const completionTokens = getTokenLength(answer)
 
   const maxHistoryCount = trimmedHistory.length + 1
 

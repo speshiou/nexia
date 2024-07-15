@@ -13,8 +13,7 @@ export function buildHistory(history: Message[]) {
   return contents
 }
 
-export async function generateText(args: GenAIArgs) {
-  const contents = buildHistory(args.history)
+export function getGenModel(args: GenAIArgs) {
   const vertexAI = new VertexAI({
     project: process.env.GCP_PROJECT_ID!,
     location: 'us-central1',
@@ -38,18 +37,30 @@ export async function generateText(args: GenAIArgs) {
   }
 
   const generativeModel = vertexAI.getGenerativeModel(params)
+  return generativeModel
+}
 
-  const parts: Part[] = [{ text: args.newMessage.text }]
-  if (args.newMessage.image) {
+export function buildContent(content: { text: string; image?: string }) {
+  const { text, image } = content
+  const parts: Part[] = [{ text: text }]
+  if (image) {
     parts.push({
       inlineData: {
-        data: args.newMessage.image,
+        data: image,
         mimeType: 'image/jpeg',
       },
     })
   }
+  return { role: 'user', parts: parts }
+}
 
-  contents.push({ role: 'user', parts: parts })
+export async function generateText(args: GenAIArgs) {
+  const generativeModel = getGenModel(args)
+
+  const contents = buildHistory(args.history)
+  const newContent = buildContent(args.newMessage)
+
+  contents.push(newContent)
 
   const resp = await generativeModel.generateContent({
     contents: contents,
@@ -59,5 +70,21 @@ export async function generateText(args: GenAIArgs) {
     return JSON.parse(resp.response.candidates![0].content.parts[0].text!)
   } else {
     return resp.response.candidates![0].content.parts[0].text!
+  }
+}
+
+export async function* generateTextStream(args: GenAIArgs) {
+  const generativeModel = getGenModel(args)
+
+  const contents = buildHistory(args.history)
+  const newContent = buildContent(args.newMessage)
+
+  contents.push(newContent)
+  const resp = await generativeModel.generateContentStream({
+    contents: contents,
+  })
+
+  for await (const item of resp.stream) {
+    yield item.candidates![0].content.parts[0].text!
   }
 }
