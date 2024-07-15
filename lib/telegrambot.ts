@@ -11,9 +11,9 @@ import {
 } from './data'
 import genAI, { getTokenLength, trimHistory } from './gen/genai'
 import { resolveModel, resolveRole, upsertTelegramUser } from './actions'
-import { User } from '@/types/collections'
+import { Chat, User } from '@/types/collections'
 import { CHAT_TIMEOUT, TELEGRAM_MAX_MESSAGE_LENGTH } from './constants'
-import { models } from './models'
+import { models, ModelType } from './models'
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN || '')
 // middleware
@@ -39,7 +39,22 @@ bot
     )
   })
   .command('reset', async (ctx) => {
-    await resetChat(ctx)
+    await updateChatState(ctx, { clearHistory: true })
+  })
+  .command('gpt', async (ctx) => {
+    await updateChatState(ctx, { model: 'gpt' })
+  })
+  .command('gpt4', async (ctx) => {
+    await updateChatState(ctx, { model: 'gpt4' })
+  })
+  .command('chatgpt', async (ctx) => {
+    await updateChatState(ctx, { role: 'chatgpt', clearHistory: true })
+  })
+  .command('proofreader', async (ctx) => {
+    await updateChatState(ctx, { role: 'proofreader', clearHistory: true })
+  })
+  .command('dictionary', async (ctx) => {
+    await updateChatState(ctx, { role: 'dictionary', clearHistory: true })
   })
 
 bot.on(message('text'), async (ctx) => {
@@ -69,7 +84,7 @@ bot.on(message('text'), async (ctx) => {
     (new Date().getTime() - chat.last_interaction.getTime()) / 1000,
   )
   if (chatTimeDiff > CHAT_TIMEOUT) {
-    await resetChat(ctx)
+    await updateChatState(ctx, { clearHistory: true })
   }
 
   // reply to photo
@@ -247,14 +262,17 @@ bot.on(message('text'), async (ctx) => {
 
 async function checkBalance(ctx: Context, user: User, cost: number) {
   const remainingTokens = user.total_tokens - user.used_tokens
-  // if (remainingTokens < cost) {
-  await sendInsufficientTokensWarning(ctx, cost)
-  return false
-  // }
+  if (remainingTokens < cost) {
+    await sendInsufficientTokensWarning(ctx, cost)
+    return false
+  }
   return true
 }
 
-async function resetChat(ctx: Context) {
+async function updateChatState(
+  ctx: Context,
+  options: { model?: ModelType; role?: string; clearHistory?: boolean },
+) {
   const user = await upsertTelegramUser(ctx)
   if (!user || !ctx.chat) {
     return
@@ -263,26 +281,57 @@ async function resetChat(ctx: Context) {
   if (!chat) {
     return
   }
+
+  const data: Partial<Chat> = {}
+
+  if (options.model && !process.env.GENAI_MODEL) {
+    data.current_model = options.model
+  }
+
+  if (options.role) {
+    data.current_chat_mode = options.role
+  }
+
+  if (options.clearHistory) {
+    data.history = []
+  }
+
+  // clear chat history
+  const result = await updateChat(
+    process.env.TELEGRAM_BOT_NAME!,
+    ctx.chat.id,
+    data,
+  )
+
+  if (result) {
+    await sendCurretChatMode(ctx)
+  }
+}
+
+async function sendCurretChatMode(ctx: Context) {
+  const user = await upsertTelegramUser(ctx)
+  if (!user || !ctx.chat) {
+    return
+  }
+  const chat = await upsertChat(process.env.TELEGRAM_BOT_NAME!, ctx.chat.id, {})
+  if (!chat) {
+    return
+  }
+
   const i18n = await getDict('en')
 
   const modelId = await resolveModel(chat.current_model)
   const model = models[modelId]
   const role = await resolveRole(user._id, chat.current_chat_mode, true)
-  // clear chat history
-  const result = await updateChat(process.env.TELEGRAM_BOT_NAME!, ctx.chat.id, {
-    history: [],
-  })
-  if (result) {
-    ctx.sendMessage(
-      i18n.currentChatStatusPattern({
-        role_name: role.name,
-        mode_name: model.title,
-      }),
-      {
-        parse_mode: 'HTML',
-      },
-    )
-  }
+  ctx.sendMessage(
+    i18n.currentChatStatusPattern({
+      role_name: role.name,
+      mode_name: model.title,
+    }),
+    {
+      parse_mode: 'HTML',
+    },
+  )
 }
 
 const sendInsufficientTokensWarning = async (
