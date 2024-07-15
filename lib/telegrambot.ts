@@ -73,6 +73,9 @@ bot
       parse_mode: 'HTML',
     })
   })
+  .command('reset', async (ctx) => {
+    await resetChat(ctx)
+  })
 
 bot.on(message('text'), async (ctx) => {
   const user = await upsertTelegramUser(ctx)
@@ -101,25 +104,7 @@ bot.on(message('text'), async (ctx) => {
     (new Date().getTime() - chat.last_interaction.getTime()) / 1000,
   )
   if (chatTimeDiff > CHAT_TIMEOUT) {
-    // clear chat history
-    const result = await updateChat(
-      process.env.TELEGRAM_BOT_NAME!,
-      ctx.chat.id,
-      {
-        history: [],
-      },
-    )
-    if (result) {
-      ctx.sendMessage(
-        i18n.currentChatStatusPattern({
-          role_name: role.name,
-          mode_name: model.title,
-        }),
-        {
-          parse_mode: 'HTML',
-        },
-      )
-    }
+    await resetChat(ctx)
   }
 
   // reply to photo
@@ -302,6 +287,37 @@ async function checkBalance(ctx: Context, user: User, cost: number) {
     return false
   }
   return true
+}
+
+async function resetChat(ctx: Context) {
+  const user = await upsertTelegramUser(ctx)
+  if (!user || !ctx.chat) {
+    return
+  }
+  const chat = await upsertChat(process.env.TELEGRAM_BOT_NAME!, ctx.chat.id, {})
+  if (!chat) {
+    return
+  }
+  const i18n = await getDict('en')
+
+  const modelId = await resolveModel(chat.current_model)
+  const model = models[modelId]
+  const role = await resolveRole(user._id, chat.current_chat_mode, true)
+  // clear chat history
+  const result = await updateChat(process.env.TELEGRAM_BOT_NAME!, ctx.chat.id, {
+    history: [],
+  })
+  if (result) {
+    ctx.sendMessage(
+      i18n.currentChatStatusPattern({
+        role_name: role.name,
+        mode_name: model.title,
+      }),
+      {
+        parse_mode: 'HTML',
+      },
+    )
+  }
 }
 
 const sendInsufficientTokensWarning = async (
