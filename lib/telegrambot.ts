@@ -173,7 +173,7 @@ bot.on(message('text'), async (ctx) => {
           )
         } catch (e) {
           console.log('failed to close a chunk')
-          continue
+          // continue
         }
 
         streamedLength = 0
@@ -222,12 +222,14 @@ bot.on(message('text'), async (ctx) => {
     console.log('failed to finish a answer')
 
     try {
-      await ctx.telegram.editMessageText(
-        ctx.chat.id,
-        placeHolder!.message_id,
-        undefined,
-        messageChunk,
-      )
+      if (messageChuckIndex == 0) {
+        await ctx.telegram.editMessageText(
+          ctx.chat.id,
+          placeHolder!.message_id,
+          undefined,
+          messageChunk,
+        )
+      }
     } catch (e) {
       console.log('failed to finish a answer with text format')
     }
