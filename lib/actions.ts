@@ -145,6 +145,7 @@ export async function getSettings(initData: string) {
       authUser!.id,
       chat?.current_chat_mode || defaultRoleId,
     ),
+    fixed_ai_model: !!process.env.GENAI_MODEL,
   }
 
   return settings

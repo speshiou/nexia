@@ -30,7 +30,12 @@ export default function Page() {
       <div className={clsx({ 'animate-pulse': isPending })}>
         <ListGroup>
           <ListItem
-            to={`${pathname}/models`}
+            {...{
+              to:
+                data?.fixed_ai_model !== true
+                  ? `${pathname}/models`
+                  : undefined,
+            }}
             title="AI Model"
             trailing={
               models[data?.current_model || defaultModelId].title || (
