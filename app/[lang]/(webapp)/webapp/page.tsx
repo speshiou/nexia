@@ -56,7 +56,7 @@ export default function Page() {
             to={`${pathname}/purchase`}
             title={
               <span style={{ color: themeProps.link_color }}>
-                Purchase more tokens
+                Get more tokens
               </span>
             }
           />

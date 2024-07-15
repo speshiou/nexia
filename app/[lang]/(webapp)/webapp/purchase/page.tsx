@@ -6,6 +6,7 @@ import ListItem from '@/components/widget/ListItem'
 import Scaffold from '@/components/widget/scaffold'
 import { placeOrder } from '@/lib/actions'
 import { packages } from '@/lib/packages'
+import { themeProps } from '@/lib/telegram/constants'
 import { PaymentMethod } from '@/types/types'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -50,7 +51,19 @@ export default function Page() {
               <ListItem
                 key={p.tokens_amount.toLocaleString()}
                 title={`+${p.tokens_amount.toLocaleString()}`}
-                trailing={`$${p.payment_amount.toLocaleString()}`}
+                trailing={
+                  <span>
+                    {p.original_payment_amount && (
+                      <span
+                        className="line-through text-sm"
+                        style={{ color: themeProps.subtitle_text_color }}
+                      >
+                        ${p.original_payment_amount}
+                      </span>
+                    )}
+                    {` $${p.payment_amount.toLocaleString()}`}
+                  </span>
+                }
                 selectionMode="circle"
                 selected={packageIndex == i}
                 onClick={(e) => setPackageIndex(i)}

@@ -38,41 +38,6 @@ bot
       }),
     )
   })
-  .action('balance', async (ctx) => {
-    const user = await upsertTelegramUser(ctx)
-    if (!user) {
-      return
-    }
-
-    if (ctx.chat?.type !== 'private') {
-      return
-    }
-
-    await ctx.answerCbQuery()
-
-    const remainingTokens = user.total_tokens - user.used_tokens
-
-    let text = `👛 <b>Balance</b>
-
-<b>${remainingTokens.toLocaleString()}</b> tokens left
-<i>You used <b>${user.used_tokens.toLocaleString()}</b> tokens</i>
-
-<b>Tips</b>
-- The longer conversation would spend more tokens
-- /reset to clear history manually`
-
-    const replyMarkup = Markup.inlineKeyboard([
-      Markup.button.webApp(
-        '💎 Get more tokens',
-        `${process.env.WEB_APP_URL}/purchase?start_for_result=1`,
-      ),
-    ])
-
-    await ctx.editMessageText(text, {
-      reply_markup: replyMarkup.reply_markup,
-      parse_mode: 'HTML',
-    })
-  })
   .command('reset', async (ctx) => {
     await resetChat(ctx)
   })
@@ -282,10 +247,10 @@ bot.on(message('text'), async (ctx) => {
 
 async function checkBalance(ctx: Context, user: User, cost: number) {
   const remainingTokens = user.total_tokens - user.used_tokens
-  if (remainingTokens < cost) {
-    await sendInsufficientTokensWarning(ctx, cost)
-    return false
-  }
+  // if (remainingTokens < cost) {
+  await sendInsufficientTokensWarning(ctx, cost)
+  return false
+  // }
   return true
 }
 
@@ -325,7 +290,10 @@ const sendInsufficientTokensWarning = async (
   requiredTokens?: number,
 ) => {
   const replyMarkup = Markup.inlineKeyboard([
-    Markup.button.callback('👛 Check balance', 'balance'),
+    Markup.button.webApp(
+      '💎 Get more tokens',
+      `${process.env.WEB_APP_URL}/purchase?start_for_result=1`,
+    ),
   ])
 
   let text = '⚠️ Insufficient tokens.'
