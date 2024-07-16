@@ -4,7 +4,6 @@ import { encodingForModel } from 'js-tiktoken'
 import { GenAIArgs } from './genai'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 
-const openai = new OpenAI()
 export const encoding = encodingForModel('gpt-4')
 
 export function buildHistory(
@@ -69,6 +68,7 @@ export async function* generateTextStream(args: GenAIArgs) {
     args.newMessage.text,
   )
 
+  const openai = new OpenAI()
   const stream = await openai.chat.completions.create({
     model: args.model || 'gpt-3.5-turbo',
     messages: messages,

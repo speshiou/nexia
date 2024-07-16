@@ -72,8 +72,6 @@ bot.on(message('text'), async (ctx) => {
   const role = await resolveRole(user._id, chat.current_chat_mode, true)
   const systemPrompt = role.prompt || ''
   const newMessage = ctx.message.text
-  console.log(modelId)
-  console.log(genAI)
   const ai = genAI[modelId]
   let numProcessedImage = 0
   let base64Image: string | undefined = undefined
