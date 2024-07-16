@@ -1,9 +1,9 @@
 import { Message } from '@/types/collections'
-import { ModelType } from '../models'
 import * as gemini from './gemini'
-import * as gpt from './gpt'
+import * as openai from './openai'
 
 export interface GenAIArgs {
+  model?: string
   systemPrompt?: string
   history: Message[]
   newMessage: {
@@ -30,7 +30,7 @@ const genAI: { [id: string]: GenAI } = {
       const answer = await gemini.generateText(args)
       return {
         answer: answer,
-        completionTokens: gpt.encoding.encode(answer).length,
+        completionTokens: openai.encoding.encode(answer).length,
       }
     },
     generateTextStream: (args) => {
@@ -39,6 +39,47 @@ const genAI: { [id: string]: GenAI } = {
     },
     contextCostFactor: 3,
     completionCostFactor: 3,
+    imageInputCostFactor: 1000,
+    // The actual value is 1M, but a limit was imposed to avoid excessive expenses.
+    maxTokens: 32768,
+  },
+  gpt: {
+    generateText: async (args) => {
+      const answer = await gemini.generateText(args)
+      return {
+        answer: answer,
+        completionTokens: openai.encoding.encode(answer).length,
+      }
+    },
+    generateTextStream: (args) => {
+      const stream = openai.generateTextStream({
+        ...args,
+        model: 'gpt-3.5-turbo',
+      })
+      return stream
+    },
+    contextCostFactor: 0.5,
+    completionCostFactor: 1.5,
+    imageInputCostFactor: 1000,
+    maxTokens: 16384,
+  },
+  gpt4: {
+    generateText: async (args) => {
+      const answer = await gemini.generateText(args)
+      return {
+        answer: answer,
+        completionTokens: openai.encoding.encode(answer).length,
+      }
+    },
+    generateTextStream: (args) => {
+      const stream = openai.generateTextStream({
+        ...args,
+        model: 'gpt-4o',
+      })
+      return stream
+    },
+    contextCostFactor: 5,
+    completionCostFactor: 15,
     imageInputCostFactor: 1000,
     // The actual value is 1M, but a limit was imposed to avoid excessive expenses.
     maxTokens: 32768,
@@ -67,7 +108,7 @@ export function trimHistory(
 }
 
 export function getTokenLength(text: string) {
-  return gpt.encoding.encode(text).length
+  return openai.encoding.encode(text).length
 }
 
 export function getPromptTokenLength(
@@ -75,8 +116,8 @@ export function getPromptTokenLength(
   chatMessages: Message[],
   newMessage: string,
 ) {
-  const messages = gpt.buildHistory(systemPrompt, chatMessages, newMessage)
-  return gpt.getTokenLength(messages)
+  const messages = openai.buildHistory(systemPrompt, chatMessages, newMessage)
+  return openai.getTokenLength(messages)
 }
 
 export default genAI

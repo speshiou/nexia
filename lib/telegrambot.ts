@@ -69,7 +69,6 @@ bot.on(message('text'), async (ctx) => {
   const i18n = await getDict('en')
 
   const modelId = await resolveModel(chat.current_model)
-  const model = models[modelId]
   const role = await resolveRole(user._id, chat.current_chat_mode, true)
   const systemPrompt = role.prompt || ''
   const newMessage = ctx.message.text

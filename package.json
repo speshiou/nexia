@@ -21,6 +21,7 @@
     "mongodb": "^6.3.0",
     "next": "14.2.4",
     "next-auth": "^5.0.0-beta.5",
+    "openai": "^4.52.7",
     "react": "^18",
     "react-dom": "^18",
     "sharp": "^0.33.2",

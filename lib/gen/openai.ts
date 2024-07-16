@@ -1,11 +1,10 @@
+import OpenAI from 'openai'
 import { Message } from '@/types/collections'
 import { encodingForModel } from 'js-tiktoken'
+import { GenAIArgs } from './genai'
+import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 
-interface GPTMessage {
-  role: string
-  content: string
-}
-
+const openai = new OpenAI()
 export const encoding = encodingForModel('gpt-4')
 
 export function buildHistory(
@@ -13,7 +12,7 @@ export function buildHistory(
   chatMessages: Message[],
   newMessage: string,
 ) {
-  const messages: GPTMessage[] = [
+  const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
       content: systemPrompt,
@@ -43,7 +42,7 @@ export function buildHistory(
   return messages
 }
 
-export function getTokenLength(messages: GPTMessage[]) {
+export function getTokenLength(messages: ChatCompletionMessageParam[]) {
   const tokensPerMessage = 3
   const tokensPerName = 1
   let numTokens: number = 0
@@ -61,4 +60,22 @@ export function getTokenLength(messages: GPTMessage[]) {
 
   numTokens += 3 // Every reply is primed with "<|start|>assistant<|message|>"
   return numTokens
+}
+
+export async function* generateTextStream(args: GenAIArgs) {
+  const messages = buildHistory(
+    args.systemPrompt || '',
+    args.history,
+    args.newMessage.text,
+  )
+
+  const stream = await openai.chat.completions.create({
+    model: args.model || 'gpt-3.5-turbo',
+    messages: messages,
+    stream: true,
+  })
+
+  for await (const chunk of stream) {
+    yield chunk.choices[0]?.delta?.content || ''
+  }
 }
