@@ -1,4 +1,4 @@
-import { Context, Markup, Telegraf } from 'telegraf'
+import { Context, Markup, Telegraf, TelegramError } from 'telegraf'
 import { Message } from 'telegraf/types'
 import { message } from 'telegraf/filters'
 import { getDict } from './utils'
@@ -125,18 +125,6 @@ bot.on(message('text'), async (ctx) => {
     return
   }
 
-  await ctx.sendChatAction('typing')
-
-  // generate
-  const stream = ai.generateTextStream({
-    systemPrompt: systemPrompt,
-    newMessage: {
-      text: newMessage,
-      image: base64Image,
-    },
-    history: trimmedHistory,
-  })
-
   let messageChuckIndex = 0
   let lastMessageChuckIndex = -1
   let streamLength = 200
@@ -147,6 +135,18 @@ bot.on(message('text'), async (ctx) => {
   let placeHolder: Message.TextMessage | undefined
 
   try {
+    await ctx.sendChatAction('typing')
+
+    // generate
+    const stream = ai.generateTextStream({
+      systemPrompt: systemPrompt,
+      newMessage: {
+        text: newMessage,
+        image: base64Image,
+      },
+      history: trimmedHistory,
+    })
+
     for await (const chunk of stream) {
       answer += chunk
 
@@ -266,6 +266,13 @@ bot.on(message('text'), async (ctx) => {
     console.log(`finalCost: ${finalCost}`)
     await incUserUsedTokens(user._id, finalCost)
   } catch (e) {
+    if (e instanceof TelegramError) {
+      if (e.response.error_code == 403) {
+        console.log(e.response.description)
+        return
+      }
+    }
+
     await ctx.reply(
       `⚠️ Stopped unexpectedly. ${e}. Please try sending other messages`,
     )
