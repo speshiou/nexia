@@ -1,5 +1,11 @@
 import { Message } from '@/types/collections'
-import { Content, ModelParams, Part, VertexAI } from '@google-cloud/vertexai'
+import {
+  Content,
+  FinishReason,
+  ModelParams,
+  Part,
+  VertexAI,
+} from '@google-cloud/vertexai'
 import { GenAIArgs } from './genai'
 
 export function buildHistory(history: Message[]) {
@@ -88,7 +94,10 @@ export async function* generateTextStream(args: GenAIArgs) {
     if (!item.candidates) {
       continue
     }
-    if (item.candidates[0].finishReason && !item.candidates[0].content.parts) {
+    if (
+      item.candidates[0].finishReason != FinishReason.STOP &&
+      !item.candidates[0].content.parts
+    ) {
       throw new Error(item.candidates[0].finishReason)
     }
     yield item.candidates[0].content.parts[0].text || ''
