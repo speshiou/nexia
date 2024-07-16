@@ -239,37 +239,37 @@ bot.on(message('text'), async (ctx) => {
         console.log('failed to finish a answer with text format')
       }
     }
+
+    const completionTokens = getTokenLength(answer)
+
+    const maxHistoryCount = trimmedHistory.length + 1
+
+    await pushChatHistory(
+      process.env.TELEGRAM_BOT_NAME!,
+      ctx.chat.id,
+      {
+        bot: answer,
+        user: newMessage,
+        date: new Date(),
+        num_context_tokens: promptTokenCount,
+        num_completion_tokens: completionTokens,
+      },
+      maxHistoryCount,
+    )
+
+    const finalCost = Math.floor(
+      promptTokenCount * ai.contextCostFactor +
+        completionTokens * ai.completionCostFactor +
+        numProcessedImage * ai.imageInputCostFactor,
+    )
+
+    console.log(`finalCost: ${finalCost}`)
+    await incUserUsedTokens(user._id, finalCost)
   } catch (e) {
     await ctx.reply(
       `⚠️ Stopped unexpectedly. ${e}. Please try sending other messages`,
     )
   }
-
-  const completionTokens = getTokenLength(answer)
-
-  const maxHistoryCount = trimmedHistory.length + 1
-
-  await pushChatHistory(
-    process.env.TELEGRAM_BOT_NAME!,
-    ctx.chat.id,
-    {
-      bot: answer,
-      user: newMessage,
-      date: new Date(),
-      num_context_tokens: promptTokenCount,
-      num_completion_tokens: completionTokens,
-    },
-    maxHistoryCount,
-  )
-
-  const finalCost = Math.floor(
-    promptTokenCount * ai.contextCostFactor +
-      completionTokens * ai.completionCostFactor +
-      numProcessedImage * ai.imageInputCostFactor,
-  )
-
-  console.log(`finalCost: ${finalCost}`)
-  await incUserUsedTokens(user._id, finalCost)
 })
 
 async function checkBalance(ctx: Context, user: User, cost: number) {
