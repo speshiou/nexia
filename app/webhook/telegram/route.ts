@@ -1,4 +1,5 @@
 import bot from '@/lib/telegrambot'
+import { TelegramError } from 'telegraf'
 
 export const dynamic = 'force-dynamic' // defaults to auto
 
@@ -15,6 +16,18 @@ export async function POST(request: Request) {
     return Response.json({ status: 'INVALID' })
   }
   const update = await request.json()
-  await bot.handleUpdate(update)
+  try {
+    await bot.handleUpdate(update)
+  } catch (e) {
+    if (e instanceof TelegramError) {
+      if (e.response.error_code == 403) {
+        console.log(e.response.description)
+        return Response.json({ status: 'OK' })
+      }
+    }
+
+    console.warn(e)
+  }
+
   return Response.json({ status: 'OK' })
 }

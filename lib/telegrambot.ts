@@ -134,9 +134,9 @@ bot.on(message('text'), async (ctx) => {
   let messageChunk = ''
   let placeHolder: Message.TextMessage | undefined
 
-  try {
-    await ctx.sendChatAction('typing')
+  await ctx.sendChatAction('typing')
 
+  try {
     // generate
     const stream = ai.generateTextStream({
       systemPrompt: systemPrompt,
@@ -266,13 +266,6 @@ bot.on(message('text'), async (ctx) => {
     console.log(`finalCost: ${finalCost}`)
     await incUserUsedTokens(user._id, finalCost)
   } catch (e) {
-    if (e instanceof TelegramError) {
-      if (e.response.error_code == 403) {
-        console.log(e.response.description)
-        return
-      }
-    }
-
     await ctx.reply(
       `⚠️ Stopped unexpectedly. ${e}. Please try sending other messages`,
     )
