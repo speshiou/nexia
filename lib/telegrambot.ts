@@ -147,92 +147,103 @@ bot.on(message('text'), async (ctx) => {
   let messageChunk = ''
   let placeHolder: Message.TextMessage | undefined
 
-  for await (const chunk of stream) {
-    answer += chunk
+  try {
+    for await (const chunk of stream) {
+      answer += chunk
 
-    messageChuckIndex = Math.floor(answer.length / TELEGRAM_MAX_MESSAGE_LENGTH)
+      messageChuckIndex = Math.floor(
+        answer.length / TELEGRAM_MAX_MESSAGE_LENGTH,
+      )
 
-    const startIndex = messageChuckIndex * TELEGRAM_MAX_MESSAGE_LENGTH
-    messageChunk = answer.substring(startIndex)
+      const startIndex = messageChuckIndex * TELEGRAM_MAX_MESSAGE_LENGTH
+      messageChunk = answer.substring(startIndex)
 
-    if (messageChuckIndex > lastMessageChuckIndex) {
-      if (lastMessageChuckIndex >= 0) {
-        // finsih previous chunk
-        const lastStartIndex =
-          lastMessageChuckIndex * TELEGRAM_MAX_MESSAGE_LENGTH
-        const lastEndIndex =
-          (lastMessageChuckIndex + 1) * TELEGRAM_MAX_MESSAGE_LENGTH
-        const lastMessageChunk = answer.substring(lastStartIndex, lastEndIndex)
+      if (messageChuckIndex > lastMessageChuckIndex) {
+        if (lastMessageChuckIndex >= 0) {
+          // finsih previous chunk
+          const lastStartIndex =
+            lastMessageChuckIndex * TELEGRAM_MAX_MESSAGE_LENGTH
+          const lastEndIndex =
+            (lastMessageChuckIndex + 1) * TELEGRAM_MAX_MESSAGE_LENGTH
+          const lastMessageChunk = answer.substring(
+            lastStartIndex,
+            lastEndIndex,
+          )
 
+          try {
+            await ctx.telegram.editMessageText(
+              ctx.chat.id,
+              placeHolder!.message_id,
+              undefined,
+              lastMessageChunk,
+            )
+          } catch (e) {
+            console.log('failed to close a chunk')
+            // continue
+          }
+
+          streamedLength = 0
+        }
+
+        // start a new chunk
+        try {
+          placeHolder = await ctx.reply(`${messageChunk} ...`)
+        } catch (e) {
+          console.log('failed to start a chunk')
+          continue
+        }
+      }
+
+      // flush chunks
+      streamedLength += chunk.length
+      if (streamedLength >= streamLength) {
         try {
           await ctx.telegram.editMessageText(
             ctx.chat.id,
             placeHolder!.message_id,
             undefined,
-            lastMessageChunk,
+            messageChunk,
           )
         } catch (e) {
-          console.log('failed to close a chunk')
-          // continue
+          console.log('failed to stream a chunk')
         }
-
         streamedLength = 0
       }
 
-      // start a new chunk
-      try {
-        placeHolder = await ctx.reply(`${messageChunk} ...`)
-      } catch (e) {
-        console.log('failed to start a chunk')
-        continue
-      }
+      lastMessageChuckIndex = messageChuckIndex
     }
 
-    // flush chunks
-    streamedLength += chunk.length
-    if (streamedLength >= streamLength) {
-      try {
-        await ctx.telegram.editMessageText(
-          ctx.chat.id,
-          placeHolder!.message_id,
-          undefined,
-          messageChunk,
-        )
-      } catch (e) {
-        console.log('failed to stream a chunk')
-      }
-      streamedLength = 0
-    }
-
-    lastMessageChuckIndex = messageChuckIndex
-  }
-
-  // finish answer
-  try {
-    await ctx.telegram.editMessageText(
-      ctx.chat.id,
-      placeHolder!.message_id,
-      undefined,
-      messageChunk,
-      {
-        parse_mode: messageChuckIndex == 0 ? 'Markdown' : undefined,
-      },
-    )
-  } catch (e) {
-    console.log('failed to finish a answer')
-
+    // finish answer
     try {
-      if (messageChuckIndex == 0) {
-        await ctx.telegram.editMessageText(
-          ctx.chat.id,
-          placeHolder!.message_id,
-          undefined,
-          messageChunk,
-        )
-      }
+      await ctx.telegram.editMessageText(
+        ctx.chat.id,
+        placeHolder!.message_id,
+        undefined,
+        messageChunk,
+        {
+          parse_mode: messageChuckIndex == 0 ? 'Markdown' : undefined,
+        },
+      )
     } catch (e) {
-      console.log('failed to finish a answer with text format')
+      console.log('failed to finish a answer')
+
+      try {
+        if (messageChuckIndex == 0) {
+          await ctx.telegram.editMessageText(
+            ctx.chat.id,
+            placeHolder!.message_id,
+            undefined,
+            messageChunk,
+          )
+        }
+      } catch (e) {
+        console.log('failed to finish a answer with text format')
+      }
     }
+  } catch (e) {
+    await ctx.reply(
+      `⚠️ Stopped unexpectedly. ${e}. Please try sending other messages`,
+    )
   }
 
   const completionTokens = getTokenLength(answer)

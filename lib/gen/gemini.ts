@@ -85,6 +85,12 @@ export async function* generateTextStream(args: GenAIArgs) {
   })
 
   for await (const item of resp.stream) {
-    yield item.candidates![0].content.parts[0].text!
+    if (!item.candidates) {
+      continue
+    }
+    if (item.candidates[0].finishReason) {
+      throw new Error(item.candidates[0].finishReason)
+    }
+    yield item.candidates[0].content.parts[0].text || ''
   }
 }

@@ -10,8 +10,7 @@ export const roles = {
     icon: '🤖',
     name: 'ChatGPT',
     greeting: 'Hi! This is ChatGPT. How can I assist you today?',
-    prompt:
-      "You are a helpful assistant named ChatGPT powered by OpenAI's GPT model.",
+    prompt: 'You are a helpful assistant.',
   },
   proofreader: {
     id: 'proofreader',
