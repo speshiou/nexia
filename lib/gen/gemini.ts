@@ -88,7 +88,7 @@ export async function* generateTextStream(args: GenAIArgs) {
     if (!item.candidates) {
       continue
     }
-    if (item.candidates[0].finishReason) {
+    if (item.candidates[0].finishReason && !item.candidates[0].content.parts) {
       throw new Error(item.candidates[0].finishReason)
     }
     yield item.candidates[0].content.parts[0].text || ''
