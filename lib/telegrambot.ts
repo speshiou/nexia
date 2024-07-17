@@ -77,6 +77,10 @@ bot.on(message('text'), async (ctx) => {
   const chatTimeDiff = Math.abs(
     (new Date().getTime() - chat.last_interaction.getTime()) / 1000,
   )
+
+  console.log(
+    `time diff ${chatTimeDiff} ${new Date().getTime()} ${chat.last_interaction.getTime()}`,
+  )
   if (chatTimeDiff > CHAT_TIMEOUT) {
     await updateChatState(ctx, { clearHistory: true })
   }
