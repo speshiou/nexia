@@ -15,7 +15,7 @@ let props = []
 for (const key of Object.keys(base)) {
   const value = base[key]
   const tags = findUniqueTags(value)
-  if (tags) {
+  if (tags.length > 0) {
     props.push(
       `  ${key}: (args: { ${tags.map((tag) => `${tag}: string`).join(', ')} }) => string,`,
     )
@@ -64,7 +64,7 @@ async function generate(locale) {
   const tasks = Object.entries(base).map(async ([key, value]) => {
     const tags = findUniqueTags(value)
     const translatedString = await trans(value, 'en', locale)
-    if (tags) {
+    if (tags.length > 0) {
       return `  ${key}: (args: { ${tags.map((tag) => `${tag}: string`).join(', ')} }) => replaceArgs(\`${translatedString}\`, args),`
     }
     return `  ${key}: \`${translatedString}\`,`

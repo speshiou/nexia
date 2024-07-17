@@ -15,8 +15,9 @@ const dict: LocalizedString = {
 👨‍🎨 /image — генерировать изображения из текста
 
 Используя этого чат-бота, вы соглашаетесь с нашими <a href="{{terms_link}}">условиями использования</a> и <a href="{{privacy_link}}">политикой конфиденциальности</a>.`, args),
-  currentChatStatusPattern: (args: { role_name: string, mode_name: string }) => replaceArgs(`ℹ️ <i>Вы сейчас общаетесь с {{role_name}} ({{mode_name}}) ... </i>`, args),
-  settings: (args: {  }) => replaceArgs(`Настройки`, args),
+  simpleGreeting: `Привет! Как я могу помочь вам сегодня?`,
+  currentChatStatusPattern: (args: { role_name: string, mode_name: string }) => replaceArgs(`ℹ️ <i>Сейчас вы общаетесь с {{role_name}} ({{mode_name}}) ... </i>`, args),
+  settings: `Настройки`,
 }
 
 export default dict

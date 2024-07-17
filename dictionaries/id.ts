@@ -15,8 +15,9 @@ const dict: LocalizedString = {
 👨‍🎨 /image - menghasilkan gambar dari teks
 
 Dengan menggunakan chatbot ini, Anda menyetujui <a href="{{terms_link}}">persyaratan layanan</a> dan <a href="{{privacy_link}}">kebijakan privasi</a> kami.`, args),
+  simpleGreeting: `Halo! Apa yang bisa saya bantu hari ini?`,
   currentChatStatusPattern: (args: { role_name: string, mode_name: string }) => replaceArgs(`ℹ️ <i>Anda sekarang ngobrol dengan {{role_name}} ({{mode_name}}) ... </i>`, args),
-  settings: (args: {  }) => replaceArgs(`Pengaturan`, args),
+  settings: `Pengaturan`,
 }
 
 export default dict

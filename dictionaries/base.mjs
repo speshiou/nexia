@@ -12,6 +12,7 @@ const base = {
 👨‍🎨 /image - generate images from text
 
 By using this chatbot, you agree to our <a href="{{terms_link}}">terms of service</a> and <a href="{{privacy_link}}">privacy policy</a>.`,
+  simpleGreeting: 'Hello! How can I assist you today?',
   currentChatStatusPattern: `ℹ️ <i>You're now chatting with {{role_name}} ({{mode_name}}) ... </i>`,
   settings: 'Settings',
 }

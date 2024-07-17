@@ -15,8 +15,9 @@ const dict: LocalizedString = {
 👨‍🎨 /image - genera imágenes a partir de texto
 
 Al utilizar este chatbot, aceptas nuestras <a href="{{terms_link}}">condiciones de servicio</a> y nuestra <a href="{{privacy_link}}">política de privacidad</a>.`, args),
+  simpleGreeting: `¡Hola! ¿Cómo puedo ayudarle hoy?`,
   currentChatStatusPattern: (args: { role_name: string, mode_name: string }) => replaceArgs(`ℹ️ <i>Ahora estás chateando con {{role_name}} ({{mode_name}})... </i>`, args),
-  settings: (args: {  }) => replaceArgs(`Ajustes`, args),
+  settings: `Ajustes`,
 }
 
 export default dict

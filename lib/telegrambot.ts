@@ -31,12 +31,7 @@ bot
       return
     }
     const i18n = await getDict('en')
-    await ctx.replyWithHTML(
-      i18n.greeting({
-        privacy_link: 'https://nexia.chat/privacy-policy',
-        terms_link: 'https://nexia.chat/terms-of-service',
-      }),
-    )
+    await ctx.replyWithHTML(i18n.simpleGreeting)
   })
   .command('reset', async (ctx) => {
     await updateChatState(ctx, { clearHistory: true })

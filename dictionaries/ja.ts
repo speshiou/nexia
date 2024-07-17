@@ -15,8 +15,9 @@ const dict: LocalizedString = {
 👨‍🎨 /image - テキストから画像を生成する
 
 このチャットボットを使用すると、<a href="{{terms_link}}">利用規約</a>および<a href="{{privacy_link}}">プライバシーポリシー</a>に同意したことになります。`, args),
+  simpleGreeting: `こんにちは！本日はどのようなご用件でしょうか？`,
   currentChatStatusPattern: (args: { role_name: string, mode_name: string }) => replaceArgs(`ℹ️ <i>現在、{{role_name}} ({{mode_name}}) とチャットしています...</i>`, args),
-  settings: (args: {  }) => replaceArgs(`設定`, args),
+  settings: `設定`,
 }
 
 export default dict
