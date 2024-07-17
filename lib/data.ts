@@ -1,5 +1,3 @@
-'use server'
-
 import { Filter, ObjectId } from 'mongodb'
 import { TelegramUser } from '@/types/telegram'
 import { CogPredictionResult } from '@/app/webhook/prediction/route'
@@ -58,7 +56,7 @@ export async function getStatCollection() {
   return getCollection<Stats>('stats')
 }
 
-export async function buildChatId(botName: string, chatId: number) {
+export function buildChatId(botName: string, chatId: number) {
   return `${botName}_${chatId}`
 }
 
@@ -76,7 +74,7 @@ export async function upsertChat(
 
   const update = {
     $setOnInsert: defaultData,
-    $set: data,
+    // $set: data,
   }
 
   const collection = await getChatCollection()
