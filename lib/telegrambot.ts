@@ -78,6 +78,8 @@ bot.on(message('text'), async (ctx) => {
     (new Date().getTime() - chat.last_interaction.getTime()) / 1000,
   )
 
+  console.log(user)
+  console.log(chat)
   console.log(
     `time diff ${chatTimeDiff} ${new Date().getTime()} ${chat.last_interaction.getTime()}`,
   )
