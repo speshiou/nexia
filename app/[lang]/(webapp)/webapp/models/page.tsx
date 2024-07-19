@@ -57,9 +57,9 @@ export default function Page() {
             )
           })}
         </ListGroup>
-        <h2 className="font-bold my-4" style={{ color: themeProps.text_color }}>
+        {/* <h2 className="font-bold my-4" style={{ color: themeProps.text_color }}>
           Token Consumption
-        </h2>
+        </h2> */}
         {/* <table
           className="w-full border-collapse border border-slate-500"
           style={{ color: themeProps.text_color }}

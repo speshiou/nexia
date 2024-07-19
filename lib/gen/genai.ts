@@ -1,6 +1,7 @@
 import { Message } from '@/types/collections'
 import * as gemini from './gemini'
 import * as openai from './openai'
+import * as anthropic from './anthropic'
 
 export interface GenAIArgs {
   model?: string
@@ -72,9 +73,8 @@ const genAI: { [id: string]: GenAI } = {
       }
     },
     generateTextStream: (args) => {
-      const stream = openai.generateTextStream({
+      const stream = anthropic.generateTextStream({
         ...args,
-        model: 'gpt-4o-mini',
       })
       return stream
     },

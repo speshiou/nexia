@@ -30,8 +30,21 @@ export async function* generateTextStream(args: GenAIArgs) {
     model: MODEL,
     stream: true,
   })
-  for await (const chunk of stream) {
-    console.log(chunk)
-    yield 'test '
+  for await (const messageStreamEvent of stream) {
+    switch (messageStreamEvent.type) {
+      case 'content_block_delta':
+        switch (messageStreamEvent.delta.type) {
+          case 'text_delta':
+            const text = messageStreamEvent.delta.text
+            yield text
+            break
+          default:
+            break
+        }
+        break
+
+      default:
+        break
+    }
   }
 }
