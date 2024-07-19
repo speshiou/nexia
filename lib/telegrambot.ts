@@ -1,4 +1,4 @@
-import { Context, Markup, Telegraf, TelegramError } from 'telegraf'
+import { Context, Markup, Telegraf, Telegram, TelegramError } from 'telegraf'
 import { Message } from 'telegraf/types'
 import { message } from 'telegraf/filters'
 import { getDict } from './utils'
@@ -31,19 +31,21 @@ bot
       return
     }
     const i18n = await getDict('en')
+    if (user.used_tokens == 0) {
+      // new user
+      await sendTokensMessage(ctx.telegram, user._id, user.total_tokens)
+    }
+
     await ctx.replyWithHTML(i18n.simpleGreeting)
   })
   .command('reset', async (ctx) => {
     await updateChatState(ctx, { clearHistory: true })
   })
-  .command('gpt', async (ctx) => {
-    await updateChatState(ctx, { model: 'gpt' })
-  })
   .command('gpt4', async (ctx) => {
     await updateChatState(ctx, { model: 'gpt4' })
   })
-  .command('chatgpt', async (ctx) => {
-    await updateChatState(ctx, { role: 'chatgpt', clearHistory: true })
+  .command('chat', async (ctx) => {
+    await updateChatState(ctx, { role: 'chat', clearHistory: true })
   })
   .command('proofreader', async (ctx) => {
     await updateChatState(ctx, { role: 'proofreader', clearHistory: true })
@@ -275,6 +277,15 @@ async function checkBalance(ctx: Context, user: User, cost: number) {
     return false
   }
   return true
+}
+
+export async function sendTokensMessage(
+  telegram: Telegram,
+  chatId: number,
+  tokens: number,
+) {
+  const message = `✅ Received ${tokens.toLocaleString()} tokens`
+  await telegram.sendMessage(chatId, message)
 }
 
 async function updateChatState(

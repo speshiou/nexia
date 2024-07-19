@@ -54,7 +54,7 @@ const genAI: { [id: string]: GenAI } = {
     generateTextStream: (args) => {
       const stream = openai.generateTextStream({
         ...args,
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
       })
       return stream
     },
@@ -74,12 +74,12 @@ const genAI: { [id: string]: GenAI } = {
     generateTextStream: (args) => {
       const stream = openai.generateTextStream({
         ...args,
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
       })
       return stream
     },
-    contextCostFactor: 5,
-    completionCostFactor: 15,
+    contextCostFactor: 0.5,
+    completionCostFactor: 1.5,
     imageInputCostFactor: 1000,
     // The actual value is 1M, but a limit was imposed to avoid excessive expenses.
     maxTokens: 32768,

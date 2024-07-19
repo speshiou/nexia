@@ -5,11 +5,11 @@ export type RoleData = {
 }
 
 export const roles = {
-  chatgpt: {
-    id: 'chatgpt',
+  chat: {
+    id: 'chat',
     icon: '🤖',
-    name: 'ChatGPT',
-    greeting: 'Hi! This is ChatGPT. How can I assist you today?',
+    name: 'Chat',
+    greeting: `Hi! How can I assist you today?`,
     prompt: 'You are a helpful assistant.',
   },
   proofreader: {
@@ -48,4 +48,6 @@ list 5 of example sentences.
 
 export type DefaultRoleType = keyof typeof roles
 
-export const defaultRoleId = 'chatgpt'
+export const defaultRoleId = (
+  Object.keys(roles) as Array<keyof typeof roles>
+)[0]

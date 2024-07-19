@@ -57,6 +57,7 @@ import {
 import { MAX_ROLE_LIMIT } from './constants'
 import { verifyAuthData } from './telegram/auth'
 import { Context, Telegraf } from 'telegraf'
+import { sendTokensMessage } from './telegrambot'
 
 type DiffusersInputs = {
   prompt: string
@@ -435,27 +436,11 @@ export async function finishOrder(orderId: string) {
     //   await creditReferralReward(order.referred_by, order.commission)
     // }
 
-    const replyMarkup = {
-      inline_keyboard: [
-        [
-          {
-            text: '👛 Check balance',
-            callback_data: 'balance',
-          },
-        ],
-      ],
-    }
-
-    const message = `✅ ${order.token_amount.toLocaleString()} tokens have been credited`
-
-    const telegramApi = new TelegramApi(
-      process.env.TELEGRAM_BOT_API_TOKEN || '',
-    )
-    await telegramApi.sendMessage(
+    const telegram = new Telegraf(process.env.TELEGRAM_BOT_API_TOKEN!)
+    await sendTokensMessage(
+      telegram.telegram,
       order.user_id,
-      message,
-      undefined,
-      replyMarkup,
+      order.token_amount,
     )
   } catch (error) {
     console.error(`Error finishing order ${orderId}:`, error)

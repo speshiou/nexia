@@ -60,7 +60,7 @@ export default function Page() {
         <h2 className="font-bold my-4" style={{ color: themeProps.text_color }}>
           Token Consumption
         </h2>
-        <table
+        {/* <table
           className="w-full border-collapse border border-slate-500"
           style={{ color: themeProps.text_color }}
         >
@@ -84,7 +84,7 @@ export default function Page() {
               <td className="border border-slate-700 px-4 py-2">3x</td>
             </tr>
           </tbody>
-        </table>
+        </table> */}
       </div>
     </Scaffold>
   )

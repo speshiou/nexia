@@ -13,6 +13,7 @@ import {
 } from '@/types/collections'
 import { ChatSetting, ChatSettings, PaymentMethod } from '@/types/types'
 import { deleteKey, isChatSetting } from './utils'
+import { FREE_TOKENS } from './constants'
 
 const DAILY_GEMS = 20
 const JOB_TIMEOUT_IN_SECONDS = 60 * 2
@@ -144,7 +145,7 @@ export async function upsertUser(userId: number, data: Partial<User>) {
   const defaultData: Partial<User> = {
     first_seen: new Date(),
     used_tokens: 0,
-    total_tokens: 100000,
+    total_tokens: FREE_TOKENS,
     referred_count: 0,
   }
 

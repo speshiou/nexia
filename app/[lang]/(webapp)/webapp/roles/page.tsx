@@ -25,7 +25,7 @@ export default function Page() {
   } = useQuery({
     queryKey: ['custom_roles'],
     queryFn: () => {
-      return getCustomRoles(webApp?.initData || '').then((result) => result)
+      return getCustomRoles(webApp?.initData || '')
     },
     enabled: initialized,
   })
