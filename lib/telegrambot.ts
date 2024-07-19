@@ -44,6 +44,12 @@ bot
   .command('gpt4', async (ctx) => {
     await updateChatState(ctx, { model: 'gpt4' })
   })
+  .command('gemini', async (ctx) => {
+    await updateChatState(ctx, { model: 'gemini' })
+  })
+  .command('claude', async (ctx) => {
+    await updateChatState(ctx, { model: 'claude' })
+  })
   .command('chat', async (ctx) => {
     await updateChatState(ctx, { role: 'chat', clearHistory: true })
   })

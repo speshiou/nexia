@@ -43,7 +43,7 @@ const genAI: { [id: string]: GenAI } = {
     // The actual value is 1M, but a limit was imposed to avoid excessive expenses.
     maxTokens: 32768,
   },
-  gpt: {
+  gpt4: {
     generateText: async (args) => {
       const answer = await gemini.generateText(args)
       return {
@@ -63,7 +63,7 @@ const genAI: { [id: string]: GenAI } = {
     imageInputCostFactor: 1000,
     maxTokens: 16384,
   },
-  gpt4: {
+  claude: {
     generateText: async (args) => {
       const answer = await gemini.generateText(args)
       return {

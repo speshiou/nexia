@@ -9,6 +9,11 @@ export const models = {
     title: 'Gemini Pro Vision',
     caption: 'Google',
   },
+  claude: {
+    id: 'claude',
+    title: 'Claude 3',
+    caption: 'Anthropic',
+  },
 }
 
 export type ModelType = keyof typeof models
