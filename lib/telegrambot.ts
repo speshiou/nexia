@@ -1,5 +1,5 @@
-import { Context, Markup, Telegraf, Telegram, TelegramError } from 'telegraf'
-import { Message } from 'telegraf/types'
+import { Context, Telegraf, Telegram } from 'telegraf'
+import { InlineKeyboardMarkup, Message } from 'telegraf/types'
 import { message } from 'telegraf/filters'
 import { getDict } from './utils'
 import {
@@ -363,19 +363,40 @@ const sendInsufficientTokensWarning = async (
   ctx: Context,
   requiredTokens?: number,
 ) => {
-  const replyMarkup = Markup.inlineKeyboard([
-    Markup.button.webApp(
-      '💎 Get more tokens',
-      `${process.env.WEB_APP_URL}/purchase?start_for_result=1`,
-    ),
-  ])
+  let replyMarkup: InlineKeyboardMarkup | undefined = undefined
+
+  if (ctx.chat?.type == 'private') {
+    replyMarkup = {
+      inline_keyboard: [
+        [
+          {
+            text: '💎 Get more tokens',
+            web_app: {
+              url: `${process.env.WEB_APP_URL}/purchase?start_for_result=1`,
+            },
+          },
+        ],
+      ],
+    }
+  } else {
+    replyMarkup = {
+      inline_keyboard: [
+        [
+          {
+            text: `👛 Check balance @${process.env.TELEGRAM_BOT_NAME}`,
+            url: `https://t.me/${process.env.TELEGRAM_BOT_NAME}`,
+          },
+        ],
+      ],
+    }
+  }
 
   let text = '⚠️ Insufficient tokens.'
   if (requiredTokens) {
     text += ` Require ${requiredTokens.toLocaleString()} tokens to process this message`
   }
 
-  await ctx.reply(text, { reply_markup: replyMarkup.reply_markup })
+  await ctx.reply(text, { reply_markup: replyMarkup })
 }
 
 export default bot
