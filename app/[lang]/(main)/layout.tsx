@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import '../../globals.css'
 import Header from '@/components/header'
+import { signIn } from '@/auth'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,6 +23,19 @@ export default function RootLayout({
   return (
     <html lang={params.lang}>
       <body className={inter.className}>
+        <form
+          action={async () => {
+            'use server'
+            await signIn()
+          }}
+        >
+          <button
+            type="submit"
+            className="text-sm font-semibold leading-6 text-gray-900"
+          >
+            Log in <span aria-hidden="true">&rarr;</span>
+          </button>
+        </form>
         <Header />
         {children}
       </body>

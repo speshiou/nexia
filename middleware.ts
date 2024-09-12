@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { auth } from './auth'
 
 const locales = [
   'en',
@@ -21,7 +22,9 @@ function getLocale(request: NextRequest) {
   return defaultLocale
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  // Add optional Middleware to keep the session alive, this will update the session expiry every time its called.
+  await auth()
   // Check if there is any supported locale in the pathname
   const { pathname } = request.nextUrl
   const pathnameHasLocale = locales.some(
