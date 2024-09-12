@@ -69,7 +69,7 @@ export async function upsertChat(
   const defaultData: Partial<Chat> = {
     first_interaction: new Date(),
     used_tokens: 0,
-    history: [],
+    messages: [],
     last_interaction: new Date(),
   }
 
@@ -100,6 +100,18 @@ export async function getChat(botName: string, chatId: number) {
   } as any)
 }
 
+export async function flushAllChatHistory() {
+  const collection = await getChatCollection()
+  await collection.updateMany(
+    {},
+    {
+      $set: {
+        messages: [],
+      },
+    },
+  )
+}
+
 export async function pushChatHistory(
   botName: string,
   chatId: number,
@@ -118,7 +130,7 @@ export async function pushChatHistory(
     collection.updateOne(filter as any, {
       $set: data,
       $push: {
-        history: {
+        messages: {
           $each: [newMessage],
           $slice: -maxMessageCount,
         },
@@ -128,7 +140,7 @@ export async function pushChatHistory(
     collection.updateOne(filter as any, {
       $set: data,
       $push: {
-        history: newMessage,
+        messages: newMessage,
       },
     })
   }

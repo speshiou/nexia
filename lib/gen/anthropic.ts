@@ -8,10 +8,21 @@ const anthropic = new Anthropic()
 
 export function buildHistory(history: Message[]) {
   const contents: Anthropic.Messages.MessageParam[] = []
-
+  let role: 'user' | 'assistant' = 'user'
   for (const message of history) {
-    contents.push({ role: 'user', content: message.user })
-    contents.push({ role: 'assistant', content: message.bot })
+    switch (message.role) {
+      case 'user':
+        role = 'user'
+        break
+      case 'system':
+        role = 'assistant'
+        break
+      case 'model':
+        role = 'assistant'
+        break
+    }
+
+    contents.push({ role: role, content: message.content })
   }
 
   return contents

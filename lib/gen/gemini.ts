@@ -12,8 +12,7 @@ export function buildHistory(history: Message[]) {
   const contents: Content[] = []
 
   for (const message of history) {
-    contents.push({ role: 'user', parts: [{ text: message.user }] })
-    contents.push({ role: 'model', parts: [{ text: message.bot }] })
+    contents.push({ role: message.role, parts: [{ text: message.content }] })
   }
 
   return contents

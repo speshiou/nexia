@@ -74,7 +74,7 @@ bot.on(message('text'), async (ctx) => {
   const modelId = await resolveModel(chat.current_model)
   const role = await resolveRole(user._id, chat.current_chat_mode, true)
   const systemPrompt = role.prompt || ''
-  const newMessage = ctx.message.text
+  const newMessage = ctx.message.text.trim()
   const ai = genAI[modelId]
   let numProcessedImage = 0
   let base64Image: string | undefined = undefined
@@ -118,7 +118,7 @@ bot.on(message('text'), async (ctx) => {
   // check max tokens
   const { promptTokenCount, trimmedHistory } = trimHistory(
     systemPrompt,
-    chat.history,
+    chat.messages,
     newMessage,
     ai.maxTokens,
   )
@@ -138,7 +138,18 @@ bot.on(message('text'), async (ctx) => {
   let messageChunk = ''
   let placeHolder: Message.TextMessage | undefined
 
+  // accept the new message
   await ctx.sendChatAction('typing')
+
+  if (newMessage) {
+    await pushChatHistory(process.env.TELEGRAM_BOT_NAME!, ctx.chat.id, {
+      role: 'user',
+      content: newMessage,
+      date: new Date(),
+      num_context_tokens: promptTokenCount,
+      num_completion_tokens: 0,
+    })
+  }
 
   try {
     // generate
@@ -252,8 +263,8 @@ bot.on(message('text'), async (ctx) => {
       process.env.TELEGRAM_BOT_NAME!,
       ctx.chat.id,
       {
-        bot: answer,
-        user: newMessage,
+        role: 'model',
+        content: answer,
         date: new Date(),
         num_context_tokens: promptTokenCount,
         num_completion_tokens: completionTokens,
@@ -318,7 +329,7 @@ async function updateChatState(
   }
 
   if (options.clearHistory) {
-    data.history = []
+    data.messages = []
   }
 
   // clear chat history

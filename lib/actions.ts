@@ -168,7 +168,7 @@ export async function updateSettings(
   let notify = false
   if (settings.current_chat_mode) {
     // clear history when the chat mode changed
-    ;(settings as Chat).history = []
+    ;(settings as Chat).messages = []
     notify = true
   }
   if (settings.current_model) {

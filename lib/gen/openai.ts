@@ -9,7 +9,7 @@ export const encoding = encodingForModel('gpt-4')
 export function buildHistory(
   systemPrompt: string,
   chatMessages: Message[],
-  newMessage: string,
+  newMessage?: string,
 ) {
   const messages: ChatCompletionMessageParam[] = [
     {
@@ -21,22 +21,31 @@ export function buildHistory(
   // Add chat context
   if (chatMessages.length > 0) {
     for (const message of chatMessages) {
+      let role: 'function' | 'system' | 'user' | 'assistant' | 'tool' = 'user'
+      switch (message.role) {
+        case 'user':
+          role = 'user'
+          break
+        case 'system':
+          role = 'system'
+          break
+        case 'model':
+          role = 'assistant'
+          break
+      }
       messages.push({
-        role: 'user',
-        content: message.user,
-      })
-      messages.push({
-        role: 'assistant',
-        content: message.bot,
+        role: role,
+        content: message.content,
       })
     }
   }
 
-  // Current message
-  messages.push({
-    role: 'user',
-    content: newMessage,
-  })
+  if (newMessage) {
+    messages.push({
+      role: 'user',
+      content: newMessage,
+    })
+  }
 
   return messages
 }
